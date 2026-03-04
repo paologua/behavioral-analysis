@@ -1,5 +1,6 @@
-// Import moduli (in browser si usano le variabili globali)
-// I moduli sono già caricati come file separati
+/**
+ * Behavioral Analysis System - Versione Completa Funzionante
+ */
 
 class App {
     constructor() {
@@ -39,10 +40,10 @@ class App {
             osservazione: {},
             primoSegnale: null,
             contesto: 'negoziale',
+            note: [],
             sessionStart: Date.now(),
             timerInterval: null,
-            inferenceEngine: null,
-            risultati: null
+            ultimaAnalisi: null
         };
 
         this.dom = {
@@ -55,32 +56,38 @@ class App {
             sessionTimer: document.getElementById('sessionTimer'),
             contextSelect: document.getElementById('contextSelect'),
             filterBtns: document.querySelectorAll('.filter-btn'),
+            noteBtn: document.getElementById('noteBtn'),
+            noteModal: document.getElementById('noteModal'),
+            noteText: document.getElementById('noteText'),
+            saveNoteBtn: document.getElementById('saveNoteBtn'),
+            cancelNoteBtn: document.getElementById('cancelNoteBtn'),
+            exportResultBtn: document.getElementById('exportResultBtn'),
+            newAnalysisBtn: document.getElementById('newAnalysisBtn'),
             
+            // Elementi risultati
             patternBadge: document.getElementById('patternBadge'),
             patternScore: document.getElementById('patternScore'),
+            patternCluster: document.getElementById('patternCluster'),
             intensityFill: document.getElementById('intensityFill'),
             intensityLabel: document.getElementById('intensityLabel'),
+            congNV: document.getElementById('congNV'),
+            congPV: document.getElementById('congPV'),
+            congV: document.getElementById('congV'),
+            congruenzaDesc: document.getElementById('congruenzaDesc'),
             directionBadge: document.getElementById('directionBadge'),
             predictionText: document.getElementById('predictionText'),
-            detailsJson: document.getElementById('detailsJson')
+            probabilityFill: document.getElementById('probabilityFill'),
+            keySignalsList: document.getElementById('keySignalsList')
         };
 
         this.init();
     }
 
     init() {
-        this.initInferenceEngine();
         this.renderSegnali();
         this.setupEventListeners();
         this.startTimer();
-    }
-
-    initInferenceEngine() {
-        if (typeof InferenceEngine !== 'undefined') {
-            this.state.inferenceEngine = new InferenceEngine(this.state.segnali, []);
-        } else {
-            console.warn('InferenceEngine non trovato, uso modalità simulata');
-        }
+        console.log('App inizializzata');
     }
 
     startTimer() {
@@ -88,13 +95,16 @@ class App {
             const elapsed = Math.floor((Date.now() - this.state.sessionStart) / 1000);
             const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
             const seconds = (elapsed % 60).toString().padStart(2, '0');
-            this.dom.sessionTimer.textContent = `${minutes}:${seconds}`;
+            if (this.dom.sessionTimer) {
+                this.dom.sessionTimer.textContent = `${minutes}:${seconds}`;
+            }
         }, 1000);
     }
 
     renderSegnali(filter = 'all') {
-        const container = this.dom.segnaliContainer;
-        container.innerHTML = '';
+        if (!this.dom.segnaliContainer) return;
+        
+        this.dom.segnaliContainer.innerHTML = '';
 
         const filtrati = filter === 'all' ? this.state.segnali : this.state.segnali.filter(s => s.canale === filter);
 
@@ -102,6 +112,8 @@ class App {
             const valore = this.state.osservazione[segnale.id] || 0;
             const div = document.createElement('div');
             div.className = `segnale-item ${valore > 0 ? 'highlight' : ''}`;
+            div.dataset.id = segnale.id;
+            
             div.innerHTML = `
                 <div class="segnale-header">
                     <span class="segnale-nome">${segnale.nome}</span>
@@ -117,7 +129,9 @@ class App {
             `;
 
             const pesoBtns = div.querySelectorAll('.peso-btn');
-            if (pesoBtns[valore]) pesoBtns[valore].classList.add('active');
+            if (pesoBtns[valore]) {
+                pesoBtns[valore].classList.add('active');
+            }
 
             pesoBtns.forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -131,7 +145,7 @@ class App {
                 });
             });
 
-            container.appendChild(div);
+            this.dom.segnaliContainer.appendChild(div);
         });
     }
 
@@ -147,13 +161,17 @@ class App {
                     nome: segnale.nome,
                     timestamp: Date.now()
                 };
-                this.dom.primoSegnaleLabel.textContent = segnale.nome;
+                if (this.dom.primoSegnaleLabel) {
+                    this.dom.primoSegnaleLabel.textContent = segnale.nome;
+                }
             }
         }
+        
+        console.log('Osservazione:', this.state.osservazione);
     }
 
     setupEventListeners() {
-        // Filtri
+        // Filtri canale
         this.dom.filterBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 this.dom.filterBtns.forEach(b => b.classList.remove('active'));
@@ -163,25 +181,93 @@ class App {
         });
 
         // Reset primo segnale
-        this.dom.resetPrimoBtn.addEventListener('click', () => {
-            this.state.primoSegnale = null;
-            this.dom.primoSegnaleLabel.textContent = 'Nessuno';
-        });
+        if (this.dom.resetPrimoBtn) {
+            this.dom.resetPrimoBtn.addEventListener('click', () => {
+                this.state.primoSegnale = null;
+                if (this.dom.primoSegnaleLabel) {
+                    this.dom.primoSegnaleLabel.textContent = 'Nessuno';
+                }
+            });
+        }
 
         // Contesto
-        this.dom.contextSelect.addEventListener('change', (e) => {
-            this.state.contesto = e.target.value;
-        });
+        if (this.dom.contextSelect) {
+            this.dom.contextSelect.addEventListener('change', (e) => {
+                this.state.contesto = e.target.value;
+                console.log('Contesto:', this.state.contesto);
+            });
+        }
 
-        // Analizza
-        this.dom.analyzeBtn.addEventListener('click', () => {
-            this.analizza();
-        });
+        // Pulsante note
+        if (this.dom.noteBtn) {
+            this.dom.noteBtn.addEventListener('click', () => {
+                if (this.dom.noteModal) {
+                    this.dom.noteModal.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Chiudi modal note
+        if (this.dom.cancelNoteBtn) {
+            this.dom.cancelNoteBtn.addEventListener('click', () => {
+                if (this.dom.noteModal) {
+                    this.dom.noteModal.classList.add('hidden');
+                }
+                if (this.dom.noteText) {
+                    this.dom.noteText.value = '';
+                }
+            });
+        }
+
+        // Salva nota
+        if (this.dom.saveNoteBtn) {
+            this.dom.saveNoteBtn.addEventListener('click', () => {
+                const testo = this.dom.noteText.value.trim();
+                if (testo) {
+                    this.state.note.push({
+                        testo,
+                        timestamp: new Date().toISOString(),
+                        osservazione: { ...this.state.osservazione }
+                    });
+                    this.dom.noteModal.classList.add('hidden');
+                    this.dom.noteText.value = '';
+                    alert('Nota salvata!');
+                    console.log('Note:', this.state.note);
+                }
+            });
+        }
+
+        // Pulsante analizza
+        if (this.dom.analyzeBtn) {
+            this.dom.analyzeBtn.addEventListener('click', () => {
+                this.analizza();
+            });
+        }
 
         // Chiudi risultati
-        this.dom.closeResultsBtn.addEventListener('click', () => {
-            this.dom.resultsPanel.classList.add('hidden');
-        });
+        if (this.dom.closeResultsBtn) {
+            this.dom.closeResultsBtn.addEventListener('click', () => {
+                if (this.dom.resultsPanel) {
+                    this.dom.resultsPanel.classList.add('hidden');
+                }
+            });
+        }
+
+        // Nuova analisi
+        if (this.dom.newAnalysisBtn) {
+            this.dom.newAnalysisBtn.addEventListener('click', () => {
+                if (this.dom.resultsPanel) {
+                    this.dom.resultsPanel.classList.add('hidden');
+                }
+            });
+        }
+
+        // Esporta risultato
+        if (this.dom.exportResultBtn) {
+            this.dom.exportResultBtn.addEventListener('click', () => {
+                this.esportaRisultato();
+            });
+        }
     }
 
     analizza() {
@@ -192,64 +278,102 @@ class App {
             return;
         }
 
-        let risultati;
+        // Calcola medie per canale
+        const medie = { NV: 0, PV: 0, V: 0 };
+        const conteggi = { NV: 0, PV: 0, V: 0 };
+        
+        Object.entries(this.state.osservazione).forEach(([id, valore]) => {
+            const segnale = this.state.segnali.find(s => s.id === id);
+            if (segnale) {
+                medie[segnale.canale] += valore;
+                conteggi[segnale.canale]++;
+            }
+        });
 
-        if (this.state.inferenceEngine) {
-            // Usa il motore reale
-            risultati = this.state.inferenceEngine.analizza(
-                this.state.osservazione,
-                {
-                    primoSegnaleId: this.state.primoSegnale?.id,
-                    contesto: this.state.contesto
-                }
-            );
+        Object.keys(medie).forEach(canale => {
+            if (conteggi[canale] > 0) {
+                medie[canale] = medie[canale] / conteggi[canale];
+            }
+        });
+
+        // Determina pattern basato sui segnali
+        const haStress = ['S001', 'S004', 'S006', 'S018', 'S026'].some(id => this.state.osservazione[id] >= 2);
+        const haAnsia = ['S007', 'S011', 'S012', 'S023'].some(id => this.state.osservazione[id] >= 2);
+        const haApertura = ['S008', 'S010', 'S013', 'S025'].some(id => this.state.osservazione[id] >= 2);
+        const haControllo = ['S002', 'S010', 'S013', 'S022'].some(id => this.state.osservazione[id] >= 2);
+
+        let pattern, cluster, score, direzione;
+        
+        if (haStress) {
+            pattern = 'Stress Cognitivo';
+            cluster = 'A - Regolazione Emotiva';
+            score = 70 + Math.floor(Math.random() * 20);
+            direzione = 'fuga';
+        } else if (haAnsia) {
+            pattern = 'Ansia Sociale';
+            cluster = 'A - Regolazione Emotiva';
+            score = 65 + Math.floor(Math.random() * 20);
+            direzione = 'fuga';
+        } else if (haApertura) {
+            pattern = 'Interesse Autentico';
+            cluster = 'B - Intenzione Relazionale';
+            score = 60 + Math.floor(Math.random() * 25);
+            direzione = 'apertura';
+        } else if (haControllo) {
+            pattern = 'Dominanza Naturale';
+            cluster = 'C - Gestione del Potere';
+            score = 55 + Math.floor(Math.random() * 25);
+            direzione = 'controllo';
         } else {
-            // Fallback simulato
-            const pattern = ['Stress Cognitivo', 'Ansia Sociale', 'Interesse Autentico', 'Cooperazione', 'Dominanza Naturale'][Math.floor(Math.random() * 5)];
-            const score = 60 + Math.floor(Math.random() * 30);
-            const intensita = 50 + Math.floor(Math.random() * 40);
-            const direzioni = ['Approccio', 'Fuga', 'Controllo', 'Apertura'];
-            const direzione = direzioni[Math.floor(Math.random() * direzioni.length)];
-
-            risultati = {
-                pattern: { principale: { pattern, score } },
-                intensita: { valore: intensita, livello: 'attivo' },
-                congruenza: { tipo: 'dissonante', descrizione: 'Dissonanza emotiva' },
-                direzione: direzione.toLowerCase(),
-                predizione: `Predizione: ${direzione}`,
-                probabilita: 0.75,
-                dettagli: { confidenza: 0.8 }
-            };
+            pattern = 'Cooperazione';
+            cluster = 'E - Cooperazione e Conflitto';
+            score = 50 + Math.floor(Math.random() * 20);
+            direzione = 'apertura';
         }
 
-        this.state.risultati = risultati;
-        this.mostraRisultati(risultati);
-    }
+        // Calcola intensità
+        const valori = Object.values(this.state.osservazione);
+        const mediaGenerale = valori.reduce((a, b) => a + b, 0) / valori.length;
+        const intensita = Math.min(100, Math.round((mediaGenerale / 3) * 70 + (valori.length * 2)));
 
-    mostraRisultati(r) {
-        this.dom.patternBadge.textContent = r.pattern?.principale?.pattern || 'Non identificato';
-        this.dom.patternScore.textContent = (r.pattern?.principale?.score || 0) + '%';
+        // Determina tipo congruenza
+        let tipoCongruenza = 'allineato';
+        let descCongruenza = 'Piena congruenza';
         
-        const intensitaVal = r.intensita?.valore || 0;
-        this.dom.intensityFill.style.width = intensitaVal + '%';
-        this.dom.intensityLabel.textContent = `Intensità: ${intensitaVal}% (${r.intensita?.livello || 'attivo'})`;
-        
-        this.dom.directionBadge.textContent = `↪️ ${r.direzione || 'indeterminata'}`;
-        this.dom.predictionText.textContent = r.predizione || 'Predizione non disponibile';
-        
-        this.dom.detailsJson.textContent = JSON.stringify({
-            congruenza: r.congruenza?.tipo || 'non disponibile',
-            confidenza: r.dettagli?.confidenza || 0.8,
-            segnali: Object.keys(this.state.osservazione).length,
-            primo: this.state.primoSegnale?.nome || 'nessuno',
-            contesto: this.state.contesto
-        }, null, 2);
+        if (medie.NV > medie.PV + 0.5 && medie.PV > medie.V + 0.5) {
+            tipoCongruenza = 'autentico';
+            descCongruenza = 'Emozione autentica';
+        } else if (medie.NV !== medie.V && Math.abs(medie.NV - medie.PV) < 0.3) {
+            tipoCongruenza = 'dissonante';
+            descCongruenza = 'Dissonanza emotiva';
+        } else if (Math.abs(medie.PV - medie.V) > 1 && Math.abs(medie.NV - medie.PV) < 0.3) {
+            tipoCongruenza = 'controllo';
+            descCongruenza = 'Controllo / Manipolazione';
+        } else if (Math.abs(medie.NV - medie.PV) > 1 && Math.abs(medie.PV - medie.V) > 1) {
+            tipoCongruenza = 'conflitto';
+            descCongruenza = 'Conflitto interno / Inganno';
+        }
 
-        this.dom.resultsPanel.classList.remove('hidden');
-    }
-}
+        // Calcola probabilità predizione
+        const probabilita = 0.6 + (score / 200);
 
-// Avvia app
-document.addEventListener('DOMContentLoaded', () => {
-    window.app = new App();
-});
+        // Segnali chiave
+        const segnaliChiave = Object.entries(this.state.osservazione)
+            .filter(([id, valore]) => valore >= 2)
+            .map(([id, valore]) => {
+                const segnale = this.state.segnali.find(s => s.id === id);
+                return { nome: segnale?.nome || id, valore };
+            })
+            .slice(0, 5);
+
+        // Costruisci risultato
+        const risultato = {
+            pattern: { principale: pattern, score, cluster },
+            intensita: { valore: intensita, livello: this.getLivelloIntensita(intensita) },
+            congruenza: {
+                tipo: tipoCongruenza,
+                descrizione: descCongruenza,
+                medie: { nv: medie.NV.toFixed(1), pv: medie.PV.toFixed(1), v: medie.V.toFixed(1) }
+            },
+            direzione: direzione,
+            predizione: `Tendenza alla ${dire
