@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Behavioral Analysis System - Completo</title>
+    <title>Behavioral Analysis System - 50 Pattern</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #1a2634;
             padding: 15px;
             max-width: 600px;
@@ -24,11 +24,15 @@
         h1 {
             color: #ecf0f1;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             font-size: 1.6rem;
             font-weight: 600;
-            letter-spacing: 1px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: #00ff9d;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
         }
         .timer {
             text-align: center;
@@ -40,9 +44,6 @@
             padding: 15px;
             border-radius: 15px;
             border: 1px solid #405b73;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-            font-weight: bold;
-            letter-spacing: 5px;
         }
         .primo-segnale {
             background: #1e2b3a;
@@ -54,18 +55,16 @@
             align-items: center;
             border-left: 4px solid #00ff9d;
         }
-        .primo-segnale span:first-child {
-            color: #b0c4de;
-        }
-        #primoSegnaleLabel {
-            font-weight: bold;
-            color: #00ff9d;
-            font-size: 1.1rem;
-        }
-        select, .note-btn, .export-btn {
-            width: 100%;
-            padding: 12px;
+        .button-group {
+            display: flex;
+            gap: 10px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        select, .note-btn, .export-btn, .reset-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px;
             border: 2px solid #405b73;
             border-radius: 10px;
             font-size: 1rem;
@@ -75,12 +74,13 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        select:hover, .note-btn:hover, .export-btn:hover {
+        select:hover, .note-btn:hover, .export-btn:hover, .reset-btn:hover {
             background: #2c3e50;
             border-color: #00ff9d;
         }
-        .note-btn { background: #2980b9; border-color: #3498db; }
-        .export-btn { background: #27ae60; border-color: #2ecc71; }
+        .note-btn { background: #2980b9; }
+        .export-btn { background: #27ae60; }
+        .reset-btn { background: #e67e22; }
         
         .filtri {
             display: flex;
@@ -99,13 +99,21 @@
             cursor: pointer;
             font-weight: 600;
             border: 1px solid #405b73;
-            transition: all 0.3s;
         }
         .filtro.active {
             background: #00ff9d;
             color: #1a2634;
             border-color: #00ff9d;
-            box-shadow: 0 0 15px rgba(0,255,157,0.3);
+        }
+        
+        .pattern-counter {
+            background: #1e2b3a;
+            padding: 8px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            border: 1px solid #00ff9d;
         }
         
         #segnaliList {
@@ -114,8 +122,6 @@
             margin-bottom: 20px;
             border-radius: 12px;
             padding: 5px;
-            scrollbar-width: thin;
-            scrollbar-color: #00ff9d #1e2b3a;
         }
         #segnaliList::-webkit-scrollbar {
             width: 6px;
@@ -139,23 +145,17 @@
         }
         .segnale:hover {
             border-color: #00ff9d;
-            transform: translateX(5px);
         }
         .segnale-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
         }
-        .segnale-nome {
-            font-weight: 600;
-            color: #ecf0f1;
-        }
         .badge {
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 0.7rem;
             font-weight: 700;
-            text-transform: uppercase;
         }
         .badge-NV { background: #3498db; color: white; }
         .badge-PV { background: #e67e22; color: white; }
@@ -175,23 +175,11 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 700;
-            transition: all 0.2s;
-        }
-        .peso-btn:hover {
-            background: #405b73;
         }
         .peso-btn.active {
             background: #00ff9d;
             color: #1a2634;
             border-color: #00ff9d;
-            box-shadow: 0 0 10px rgba(0,255,157,0.5);
-        }
-        
-        .valore-corrente {
-            font-size: 0.8rem;
-            color: #b0c4de;
-            text-align: right;
-            margin-top: 5px;
         }
         
         .analyze-btn {
@@ -205,13 +193,6 @@
             font-weight: 700;
             cursor: pointer;
             margin: 20px 0;
-            letter-spacing: 2px;
-            box-shadow: 0 5px 15px rgba(231,76,60,0.4);
-            transition: all 0.3s;
-        }
-        .analyze-btn:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 25px rgba(231,76,60,0.6);
         }
         
         .risultati {
@@ -220,13 +201,6 @@
             border-radius: 15px;
             display: none;
             border: 2px solid #405b73;
-            margin-top: 20px;
-        }
-        .risultati h3 {
-            color: #00ff9d;
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-            text-align: center;
         }
         
         .confronto {
@@ -236,7 +210,6 @@
             padding: 15px;
             background: #2c3e50;
             border-radius: 12px;
-            border: 1px solid #405b73;
         }
         .canale {
             text-align: center;
@@ -244,11 +217,10 @@
         .valore {
             font-size: 2.5rem;
             font-weight: 800;
-            line-height: 1;
         }
-        .NV { color: #3498db; text-shadow: 0 0 10px rgba(52,152,219,0.3); }
-        .PV { color: #e67e22; text-shadow: 0 0 10px rgba(230,126,34,0.3); }
-        .V { color: #27ae60; text-shadow: 0 0 10px rgba(39,174,96,0.3); }
+        .NV { color: #3498db; }
+        .PV { color: #e67e22; }
+        .V { color: #27ae60; }
         
         .result-card {
             background: #2c3e50;
@@ -265,35 +237,34 @@
         .pattern-badge {
             font-size: 1.4rem;
             font-weight: 700;
-            margin-bottom: 5px;
             color: white;
         }
         .pattern-score {
             font-size: 2.2rem;
             font-weight: 800;
             color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .pattern-cluster {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            color: white;
         }
         
-        .intensity-bar {
-            height: 20px;
-            background: #1e2b3a;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 10px 0;
-            border: 1px solid #405b73;
+        .identita-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
         }
-        .intensity-fill {
+        .identita-item {
+            background: #1e2b3a;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .identita-bar {
+            height: 6px;
+            background: #2c3e50;
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+        .identita-fill {
             height: 100%;
-            background: linear-gradient(90deg, #f1c40f, #e67e22, #e74c3c);
-            width: 0%;
-            transition: width 0.5s;
-            box-shadow: 0 0 10px rgba(231,76,60,0.5);
+            border-radius: 3px;
         }
         
         .modal {
@@ -303,7 +274,6 @@
             background: rgba(0,0,0,0.8);
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(5px);
             z-index: 1000;
         }
         .modal.show { display: flex; }
@@ -314,29 +284,22 @@
             width: 90%;
             max-width: 400px;
             border: 2px solid #00ff9d;
-            box-shadow: 0 0 30px rgba(0,255,157,0.2);
         }
-        .modal-content h3 {
-            color: #00ff9d;
-            margin-bottom: 15px;
-        }
+        .modal-content h3 { color: #00ff9d; margin-bottom: 15px; }
         textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #405b73;
             border-radius: 8px;
             margin: 10px 0;
-            font-family: inherit;
             background: #1e2b3a;
             color: #ecf0f1;
-            font-size: 1rem;
         }
         .modal-actions {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
         }
-        button { cursor: pointer; }
         .btn-primary {
             background: #00ff9d;
             color: #1a2634;
@@ -352,76 +315,52 @@
             padding: 10px 20px;
             border-radius: 6px;
         }
-        .stat-box {
-            background: #2c3e50;
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: #b0c4de;
-            border: 1px dashed #405b73;
-        }
-        .badge-container {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 10px 0;
-        }
-        .info-badge {
-            background: #00ff9d;
-            color: #1a2634;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .json-export {
-            background: #1e2b3a;
+        .warning-box {
+            background: #e67e22;
+            color: white;
             padding: 10px;
             border-radius: 8px;
-            font-family: monospace;
-            font-size: 0.8rem;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 10px;
-            border: 1px solid #405b73;
-            color: #b0c4de;
+            margin: 10px 0;
+            display: none;
         }
-        .controlli-export {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
+        .badge-50 {
+            display: inline-block;
+            background: #00ff9d;
+            color: #1a2634;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: 10px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🧠 BEHAVIORAL ANALYSIS</h1>
+        <h1>🧠 ANALISI COMPORTAMENTALE <span class="badge-50">50 PATTERN</span></h1>
+        <div class="subtitle">Sistema Completo di Analisi</div>
         
-        <!-- Timer -->
         <div class="timer" id="timer">00:00</div>
         
-        <!-- Barra primo segnale -->
         <div class="primo-segnale">
             <span>📌 PRIMO SEGNALE:</span>
             <span id="primoSegnaleLabel">Nessuno</span>
             <button id="resetPrimo" class="btn-secondary" style="padding:5px 10px;">✕</button>
         </div>
         
-        <!-- Controlli principali -->
-        <div style="display: flex; gap: 10px;">
-            <select id="contesto" style="flex: 2;">
+        <div class="button-group">
+            <select id="contesto">
                 <option value="formale">🏢 Formale</option>
                 <option value="informale">☕ Informale</option>
                 <option value="negoziale" selected>🤝 Negoziale</option>
                 <option value="conflittuale">⚔️ Conflittuale</option>
                 <option value="intimo">❤️ Intimo</option>
             </select>
-            <button class="note-btn" id="noteBtn" style="flex: 1;">📝 Note</button>
-            <button class="export-btn" id="exportBtn" style="flex: 1;">📤 Export</button>
+            <button class="note-btn" id="noteBtn">📝 Note</button>
+            <button class="export-btn" id="exportBtn">📤 Export</button>
+            <button class="reset-btn" id="resetBtn">🔄 Reset</button>
         </div>
         
-        <!-- Filtri canale -->
         <div class="filtri">
             <button class="filtro active" data-filtro="all">Tutti</button>
             <button class="filtro" data-filtro="NV">NV</button>
@@ -429,58 +368,65 @@
             <button class="filtro" data-filtro="V">V</button>
         </div>
         
-        <!-- Lista segnali -->
+        <div class="pattern-counter" id="patternCounter">
+            🧠 50 Pattern Comportamentali - Seleziona i segnali per attivarli
+        </div>
+        
         <div id="segnaliList"></div>
         
-        <!-- Pulsante Analizza -->
-        <button class="analyze-btn" id="analizzaBtn">🔍 ANALIZZA COMPORTAMENTO</button>
+        <div class="warning-box" id="warningBox">
+            ⚠️ Tutti i valori sono stati resettati a 0
+        </div>
         
-        <!-- Pannello Risultati -->
+        <button class="analyze-btn" id="analizzaBtn">🔍 ANALIZZA 50 PATTERN</button>
+        
         <div class="risultati" id="risultati">
             <h3>📊 RISULTATI ANALISI</h3>
             
-            <!-- Confronto NV-PV-V -->
             <div class="confronto">
                 <div class="canale">
                     <div class="valore NV" id="valoreNV">0</div>
-                    <div style="font-size:0.8rem;">NV</div>
+                    <div>NV</div>
                 </div>
                 <div class="canale">
                     <div class="valore PV" id="valorePV">0</div>
-                    <div style="font-size:0.8rem;">PV</div>
+                    <div>PV</div>
                 </div>
                 <div class="canale">
                     <div class="valore V" id="valoreV">0</div>
-                    <div style="font-size:0.8rem;">V</div>
+                    <div>V</div>
                 </div>
             </div>
             
-            <!-- Pattern principale -->
             <div class="result-card pattern-card">
                 <div class="pattern-badge" id="patternNome">-</div>
                 <div class="pattern-score" id="patternScore">0%</div>
                 <div class="pattern-cluster" id="patternCluster"></div>
             </div>
             
-            <!-- Pattern secondario -->
             <div class="result-card" id="secondarioCard" style="display:none;">
                 <strong>📌 Pattern secondario:</strong><br>
                 <span id="secondarioNome"></span> (<span id="secondarioScore"></span>%)
             </div>
             
-            <!-- Intensità -->
+            <div class="result-card" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <span style="font-size:1.2rem; font-weight:700;">🧠 PROFILO IDENTITÀ</span>
+                    <span class="badge-identita" id="identitaDominante">Analisi...</span>
+                </div>
+                <div class="identita-grid" id="identitaGrid"></div>
+            </div>
+            
             <div class="result-card">
-                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <div style="display:flex; justify-content:space-between;">
                     <strong>⚡ Intensità</strong>
                     <span id="intensitaValore">0%</span>
                 </div>
                 <div class="intensity-bar">
                     <div class="intensity-fill" id="intensityBar" style="width:0%"></div>
                 </div>
-                <div style="font-size:0.8rem; color:#b0c4de;" id="intensitaDetail"></div>
             </div>
             
-            <!-- Direzione e Congruenza -->
             <div style="display: flex; gap: 10px;">
                 <div class="result-card" style="flex:1;">
                     <strong>🧭 Direzione</strong><br>
@@ -488,21 +434,12 @@
                 </div>
                 <div class="result-card" style="flex:2;">
                     <strong>🔄 Congruenza</strong><br>
-                    <span id="congruenzaTipo" style="font-weight:bold;"></span><br>
+                    <span id="congruenzaTipo"></span><br>
                     <span style="font-size:0.8rem;" id="congruenzaDesc"></span>
                 </div>
             </div>
             
-            <!-- Statistiche e JSON -->
             <div class="stat-box" id="statBox"></div>
-            <div id="jsonContainer" style="display:none;">
-                <div class="json-export" id="jsonOutput"></div>
-                <div class="controlli-export">
-                    <button class="btn-primary" id="copiaJson">📋 Copia</button>
-                    <button class="btn-primary" id="scaricaJson">💾 Scarica</button>
-                    <button class="btn-secondary" id="chiudiJson">✕ Chiudi</button>
-                </div>
-            </div>
         </div>
     </div>
     
@@ -510,16 +447,28 @@
     <div class="modal" id="noteModal">
         <div class="modal-content">
             <h3>📝 NUOVA NOTA</h3>
-            <textarea id="noteText" rows="4" placeholder="Osservazioni sul comportamento..."></textarea>
+            <textarea id="noteText" rows="4" placeholder="Osservazioni..."></textarea>
             <div class="modal-actions">
                 <button class="btn-secondary" id="annullaNota">Annulla</button>
                 <button class="btn-primary" id="salvaNota">Salva</button>
             </div>
         </div>
     </div>
+    
+    <!-- Modal Reset -->
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <h3>⚠️ CONFERMA RESET</h3>
+            <p>Resettare tutti i 30 segnali a 0?</p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="annullaReset">Annulla</button>
+                <button class="btn-primary" id="confermaReset">✅ Conferma</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // ==================== DATI COMPLETI ====================
+        // ==================== SEGNALI (30) ====================
         const SEGNALI = [
             { id: "S001", nome: "Respiro corto/toracico", canale: "NV" },
             { id: "S002", nome: "Respiro profondo/addominale", canale: "NV" },
@@ -553,27 +502,74 @@
             { id: "S030", nome: "Tono incongruente", canale: "V" }
         ];
 
+        // ==================== 50 PATTERN COMPLETI ====================
         const PATTERN_LIBRARY = [
+            // === CLUSTER A - REGOLAZIONE EMOTIVA (8) ===
             { nome: "Stress Cognitivo", cluster: "A", segnali: ["S001","S004","S018","S026"], direzione: "fuga" },
             { nome: "Ansia Sociale", cluster: "A", segnali: ["S007","S011","S012","S023"], direzione: "fuga" },
             { nome: "Conflitto Interno", cluster: "A", segnali: ["S003","S016","S019","S030"], direzione: "controllo" },
             { nome: "Over-control", cluster: "A", segnali: ["S003","S016","S021","S023"], direzione: "controllo" },
+            { nome: "Perfezionismo", cluster: "A", segnali: ["S003","S004","S016","S021"], direzione: "controllo" },
+            { nome: "Autosabotaggio", cluster: "A", segnali: ["S001","S004","S014","S027"], direzione: "autodistruttivo" },
+            { nome: "Fragilità Emotiva", cluster: "A", segnali: ["S001","S005","S011","S023"], direzione: "fuga" },
+            { nome: "Resilienza", cluster: "A", segnali: ["S002","S013","S025","S029"], direzione: "apertura" },
+
+            // === CLUSTER B - INTENZIONE RELAZIONALE (8) ===
             { nome: "Interesse Autentico", cluster: "B", segnali: ["S008","S010","S013","S029"], direzione: "apertura" },
             { nome: "Seduzione", cluster: "B", segnali: ["S008","S010","S017","S020"], direzione: "approccio" },
             { nome: "Micro-ritiro", cluster: "B", segnali: ["S007","S009","S011","S019"], direzione: "fuga" },
+            { nome: "Dipendenza Emotiva", cluster: "B", segnali: ["S011","S012","S023","S029"], direzione: "dipendenza" },
+            { nome: "Attaccamento Ansioso", cluster: "B", segnali: ["S007","S011","S018","S023"], direzione: "ansia" },
+            { nome: "Attaccamento Evitante", cluster: "B", segnali: ["S009","S011","S019","S021"], direzione: "evitamento" },
+            { nome: "Attaccamento Sicuro", cluster: "B", segnali: ["S008","S010","S013","S029"], direzione: "apertura" },
+            { nome: "Empatia", cluster: "B", segnali: ["S008","S013","S025","S029"], direzione: "apertura" },
+
+            // === CLUSTER C - GESTIONE DEL POTERE (8) ===
             { nome: "Dominanza Naturale", cluster: "C", segnali: ["S002","S008","S010","S013"], direzione: "controllo" },
             { nome: "Dominanza Aggressiva", cluster: "C", segnali: ["S001","S004","S010","S022"], direzione: "controllo" },
             { nome: "Leadership Naturale", cluster: "C", segnali: ["S002","S008","S013","S025"], direzione: "controllo" },
+            { nome: "Sottomissione", cluster: "C", segnali: ["S011","S012","S021","S023"], direzione: "sottomissione" },
+            { nome: "Competizione Malsana", cluster: "C", segnali: ["S001","S004","S010","S022"], direzione: "controllo" },
+            { nome: "Collaborazione", cluster: "C", segnali: ["S008","S010","S013","S025"], direzione: "apertura" },
+            { nome: "Carisma", cluster: "C", segnali: ["S002","S008","S013","S017"], direzione: "approccio" },
+            { nome: "Autoritarismo", cluster: "C", segnali: ["S004","S010","S022","S030"], direzione: "controllo" },
+
+            // === CLUSTER D - INGANNO E MANIPOLAZIONE (8) ===
             { nome: "Inganno", cluster: "D", segnali: ["S003","S011","S016","S030"], direzione: "controllo" },
             { nome: "Manipolazione Soft", cluster: "D", segnali: ["S008","S010","S017","S027"], direzione: "controllo" },
             { nome: "Manipolazione Hard", cluster: "D", segnali: ["S001","S004","S020","S022"], direzione: "controllo" },
+            { nome: "Gaslighting", cluster: "D", segnali: ["S016","S026","S027","S030"], direzione: "controllo" },
+            { nome: "Narcisismo", cluster: "D", segnali: ["S010","S017","S022","S028"], direzione: "controllo" },
+            { nome: "Vittimismo", cluster: "D", segnali: ["S011","S016","S019","S023"], direzione: "vittima" },
+            { nome: "Doppiezza", cluster: "D", segnali: ["S016","S017","S027","S030"], direzione: "controllo" },
+            { nome: "Sfruttamento", cluster: "D", segnali: ["S010","S014","S022","S027"], direzione: "controllo" },
+
+            // === CLUSTER E - COOPERAZIONE E CONFLITTO (8) ===
             { nome: "Cooperazione", cluster: "E", segnali: ["S008","S010","S013","S025"], direzione: "apertura" },
             { nome: "Resistenza Passiva", cluster: "E", segnali: ["S009","S011","S012","S021"], direzione: "fuga" },
             { nome: "Resistenza Attiva", cluster: "E", segnali: ["S001","S004","S020","S022"], direzione: "controllo" },
-            { nome: "Baseline Deviation", cluster: "F", segnali: ["S001","S004","S006","S011"], direzione: "varia" },
-            { nome: "Micro-shift Emotivo", cluster: "F", segnali: ["S005","S016","S017","S024"], direzione: "varia" },
-            { nome: "Micro-shift Relazionale", cluster: "F", segnali: ["S007","S008","S009","S011"], direzione: "varia" }
+            { nome: "Mediazione", cluster: "E", segnali: ["S008","S010","S013","S029"], direzione: "apertura" },
+            { nome: "Aggressività Passiva", cluster: "E", segnali: ["S009","S016","S019","S021"], direzione: "indiretto" },
+            { nome: "Conflitto Aperto", cluster: "E", segnali: ["S001","S004","S020","S022"], direzione: "conflitto" },
+            { nome: "Pacifismo", cluster: "E", segnali: ["S002","S008","S013","S029"], direzione: "apertura" },
+            { nome: "Ostilità", cluster: "E", segnali: ["S001","S004","S022","S030"], direzione: "conflitto" },
+
+            // === CLUSTER F - COMUNICAZIONE (5) ===
+            { nome: "Comunicazione Assertiva", cluster: "F", segnali: ["S008","S010","S013","S029"], direzione: "assertività" },
+            { nome: "Comunicazione Aggressiva", cluster: "F", segnali: ["S001","S004","S020","S022"], direzione: "aggressività" },
+            { nome: "Comunicazione Passiva", cluster: "F", segnali: ["S011","S012","S019","S023"], direzione: "passività" },
+            { nome: "Comunicazione Ambigua", cluster: "F", segnali: ["S016","S019","S027","S030"], direzione: "confusione" },
+            { nome: "Ascolto Attivo", cluster: "F", segnali: ["S008","S010","S013","S025"], direzione: "apertura" },
+
+            // === CLUSTER G - COPING E ADATTAMENTO (5) ===
+            { nome: "Coping Attivo", cluster: "G", segnali: ["S002","S008","S013","S020"], direzione: "approccio" },
+            { nome: "Negazione", cluster: "G", segnali: ["S016","S021","S023","S026"], direzione: "evitamento" },
+            { nome: "Dissociazione", cluster: "G", segnali: ["S003","S009","S016","S019"], direzione: "distacco" },
+            { nome: "Adattamento", cluster: "G", segnali: ["S002","S008","S013","S025"], direzione: "flessibilità" },
+            { nome: "Rigidità", cluster: "G", segnali: ["S003","S016","S021","S023"], direzione: "controllo" }
         ];
+
+        console.log(`✅ Caricati ${PATTERN_LIBRARY.length} pattern comportamentali`);
 
         // ==================== STATO ====================
         let stato = {};
@@ -584,7 +580,6 @@
         let secondi = 0;
         let filtroCorrente = 'all';
         let contestoCorrente = 'negoziale';
-        let sessionStart = new Date().toISOString();
 
         // ==================== DOM ====================
         const segnaliList = document.getElementById('segnaliList');
@@ -595,6 +590,7 @@
         const filtri = document.querySelectorAll('.filtro');
         const analizzaBtn = document.getElementById('analizzaBtn');
         const risultatiDiv = document.getElementById('risultati');
+        const patternCounter = document.getElementById('patternCounter');
         const valoreNV = document.getElementById('valoreNV');
         const valorePV = document.getElementById('valorePV');
         const valoreV = document.getElementById('valoreV');
@@ -603,7 +599,6 @@
         const patternCluster = document.getElementById('patternCluster');
         const intensitaValore = document.getElementById('intensitaValore');
         const intensityBar = document.getElementById('intensityBar');
-        const intensitaDetail = document.getElementById('intensitaDetail');
         const direzioneText = document.getElementById('direzioneText');
         const congruenzaTipo = document.getElementById('congruenzaTipo');
         const congruenzaDesc = document.getElementById('congruenzaDesc');
@@ -611,19 +606,21 @@
         const secondarioNome = document.getElementById('secondarioNome');
         const secondarioScore = document.getElementById('secondarioScore');
         const statBox = document.getElementById('statBox');
-        const jsonContainer = document.getElementById('jsonContainer');
-        const jsonOutput = document.getElementById('jsonOutput');
+        const identitaGrid = document.getElementById('identitaGrid');
+        const identitaDominante = document.getElementById('identitaDominante');
+        const warningBox = document.getElementById('warningBox');
         
         // Bottoni
         const noteBtn = document.getElementById('noteBtn');
         const exportBtn = document.getElementById('exportBtn');
+        const resetBtn = document.getElementById('resetBtn');
         const noteModal = document.getElementById('noteModal');
         const noteText = document.getElementById('noteText');
         const salvaNota = document.getElementById('salvaNota');
         const annullaNota = document.getElementById('annullaNota');
-        const copiaJson = document.getElementById('copiaJson');
-        const scaricaJson = document.getElementById('scaricaJson');
-        const chiudiJson = document.getElementById('chiudiJson');
+        const resetModal = document.getElementById('resetModal');
+        const annullaReset = document.getElementById('annullaReset');
+        const confermaReset = document.getElementById('confermaReset');
 
         // ==================== TIMER ====================
         setInterval(() => {
@@ -632,6 +629,17 @@
             const sec = (secondi % 60).toString().padStart(2, '0');
             timerEl.textContent = `${min}:${sec}`;
         }, 1000);
+
+        // ==================== RESET ====================
+        function resetTutto() {
+            SEGNALI.forEach(s => { stato[s.id] = 0; });
+            primoSegnale = null;
+            primoSegnaleLabel.textContent = 'Nessuno';
+            risultatiDiv.style.display = 'none';
+            renderSegnali();
+            warningBox.style.display = 'block';
+            setTimeout(() => { warningBox.style.display = 'none'; }, 3000);
+        }
 
         // ==================== RENDER ====================
         function renderSegnali() {
@@ -680,10 +688,65 @@
             renderSegnali();
         };
 
+        // ==================== ANALISI IDENTITÀ ====================
+        function analizzaIdentita() {
+            const pesi = {
+                competenza: { S028: 2, S025: 2, S013: 1, S010: 1 },
+                intelligenza: { S028: 2, S020: 1.5, S005: 1, S025: 1.5 },
+                status: { S013: 2, S008: 1.5, S022: 1.5, S010: 1 },
+                indipendenza: { S009: 2, S007: 2, S021: 1.5, S019: 1 },
+                moralita: { S029: 2.5, S025: 1.5, S027: -1.5, S011: -1 },
+                superiorita: { S022: 2, S010: 2, S001: -1, S004: -1 },
+                sicurezza: { S002: 2, S013: 2, S029: 1.5, S019: 1 }
+            };
+            
+            let punteggi = {};
+            Object.keys(pesi).forEach(tratto => {
+                let totale = 0, massimo = 0;
+                Object.entries(pesi[tratto]).forEach(([segnale, peso]) => {
+                    const valore = stato[segnale] || 0;
+                    if (peso > 0) { totale += valore * peso; massimo += 4 * peso; }
+                    else { totale -= valore * Math.abs(peso); massimo += 4 * Math.abs(peso); }
+                });
+                punteggi[tratto] = massimo > 0 ? Math.min(100, Math.max(0, Math.round((totale / massimo) * 100))) : 0;
+            });
+            return punteggi;
+        }
+
+        function getIdentitaDominante(punteggi) {
+            let max = 0, dominante = 'neutro';
+            Object.entries(punteggi).forEach(([tratto, val]) => { if (val > max) { max = val; dominante = tratto; } });
+            let livello = 'basso';
+            if (max >= 70) livello = 'molto alto';
+            else if (max >= 50) livello = 'alto';
+            else if (max >= 30) livello = 'moderato';
+            return { dominante, livello, punteggio: max };
+        }
+
+        function renderIdentita(punteggi) {
+            let html = '';
+            const colori = {
+                competenza: '#3498db', intelligenza: '#9b59b6', status: '#f1c40f',
+                indipendenza: '#e67e22', moralita: '#2ecc71', superiorita: '#e74c3c', sicurezza: '#1abc9c'
+            };
+            Object.entries(punteggi).forEach(([tratto, valore]) => {
+                const colore = valore > 60 ? '#00ff9d' : valore > 30 ? colori[tratto] : '#e74c3c';
+                html += `
+                    <div class="identita-item">
+                        <div class="identita-label">${tratto}</div>
+                        <div class="identita-valore" style="color:${colore};">${valore}%</div>
+                        <div class="identita-bar">
+                            <div class="identita-fill" style="width:${valore}%; background:${colore};"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            identitaGrid.innerHTML = html;
+        }
+
         // ==================== ANALISI ====================
         function calcolaStatistiche() {
-            let sommaNV = 0, sommaPV = 0, sommaV = 0;
-            let countNV = 0, countPV = 0, countV = 0;
+            let sommaNV = 0, sommaPV = 0, sommaV = 0, countNV = 0, countPV = 0, countV = 0;
             SEGNALI.forEach(s => {
                 const val = stato[s.id];
                 if (s.canale === 'NV') { sommaNV += val; countNV++; }
@@ -694,7 +757,7 @@
                 mediaNV: (sommaNV / countNV).toFixed(1),
                 mediaPV: (sommaPV / countPV).toFixed(1),
                 mediaV: (sommaV / countV).toFixed(1),
-                sommaNV, sommaPV, sommaV, countNV, countPV, countV
+                countNV, countPV, countV
             };
         }
 
@@ -708,27 +771,31 @@
 
         function determinaCongruenza(nv, pv, v) {
             const n = parseFloat(nv), p = parseFloat(pv), vv = parseFloat(v);
-            if (n > p && p > vv) return { tipo: '✅ AUTENTICO', desc: 'NV > PV > V - Pattern autentico' };
-            if (n === p && p === vv) return { tipo: '🟦 ALLINEATO', desc: 'Tutti i canali allineati' };
-            if (n === p && n > vv) return { tipo: '⚠️ DISSONANZA', desc: 'NV e PV allineati, V più basso' };
-            if (n === p && n < vv) return { tipo: '⚠️ DISSONANZA', desc: 'NV e PV allineati, V più alto' };
-            if (p === vv && n > p) return { tipo: '🔄 CONTROLLO', desc: 'NV più alto di PV e V allineati' };
-            if (p === vv && n < p) return { tipo: '🔄 INIBITO', desc: 'NV più basso di PV e V allineati' };
-            return { tipo: '❓ MISTO', desc: 'Pattern non chiaramente definito' };
+            if (n > p && p > vv) return { tipo: '✅ AUTENTICO', desc: 'NV > PV > V' };
+            if (n === p && p === vv) return { tipo: '🟦 ALLINEATO', desc: 'Tutti allineati' };
+            if (n === p && n > vv) return { tipo: '⚠️ DISSONANZA', desc: 'NV=PV > V' };
+            if (n === p && n < vv) return { tipo: '⚠️ DISSONANZA', desc: 'NV=PV < V' };
+            if (p === vv && n > p) return { tipo: '🔄 CONTROLLO', desc: 'NV > PV=V' };
+            if (p === vv && n < p) return { tipo: '🔄 INIBITO', desc: 'NV < PV=V' };
+            return { tipo: '❓ MISTO', desc: 'Pattern non chiaro' };
         }
 
+        // ==================== ANALISI PRINCIPALE ====================
         analizzaBtn.addEventListener('click', () => {
             const stats = calcolaStatistiche();
             const patterns = calcolaPattern();
-            const principale = patterns[0] || { nome: 'Nessuno', score: 0, cluster: '-', direzione: '-' };
+            const principale = patterns[0] || { nome: 'Nessun pattern', score: 0, cluster: '-', direzione: '-' };
             const secondario = patterns[1] || null;
             const congruenza = determinaCongruenza(stats.mediaNV, stats.mediaPV, stats.mediaV);
             
+            const punteggiIdentita = analizzaIdentita();
+            const dominante = getIdentitaDominante(punteggiIdentita);
+            
             const valoriAttivi = Object.values(stato).filter(v => v > 0);
-            const mediaTotale = valoriAttivi.length ? 
-                (valoriAttivi.reduce((a, b) => a + b, 0) / valoriAttivi.length) : 0;
+            const mediaTotale = valoriAttivi.length ? (valoriAttivi.reduce((a, b) => a + b, 0) / valoriAttivi.length) : 0;
             const intensita = valoriAttivi.length ? Math.round((mediaTotale / 4) * 100) : 0;
             
+            // Aggiorna UI
             valoreNV.textContent = stats.mediaNV;
             valorePV.textContent = stats.mediaPV;
             valoreV.textContent = stats.mediaV;
@@ -739,11 +806,13 @@
             
             intensitaValore.textContent = intensita + '%';
             intensityBar.style.width = intensita + '%';
-            intensitaDetail.textContent = `${valoriAttivi.length} segnali attivi, media ${mediaTotale.toFixed(1)}/4`;
             
             direzioneText.textContent = principale.direzione;
             congruenzaTipo.textContent = congruenza.tipo;
             congruenzaDesc.textContent = congruenza.desc;
+            
+            identitaDominante.textContent = `${dominante.dominante} (${dominante.livello})`;
+            renderIdentita(punteggiIdentita);
             
             if (secondario) {
                 secondarioCard.style.display = 'block';
@@ -755,82 +824,26 @@
                 📊 Segnali attivi: ${valoriAttivi.length}/${SEGNALI.length}<br>
                 📌 Primo segnale: ${primoSegnale || 'nessuno'}<br>
                 🎯 Contesto: ${contestoCorrente}<br>
-                📈 Pattern trovati: ${patterns.length}
+                📈 Pattern attivi: ${patterns.length}/${PATTERN_LIBRARY.length}
             `;
             
+            patternCounter.innerHTML = `🧠 ${patterns.length} pattern attivi su ${PATTERN_LIBRARY.length}`;
             risultatiDiv.style.display = 'block';
         });
 
-        // ==================== EXPORT JSON ====================
-        function generaJSON() {
-            return {
-                sessione: {
-                    data: new Date().toLocaleString(),
-                    durata: timerEl.textContent,
-                    contesto: contestoCorrente,
-                    primo_segnale: primoSegnale
-                },
-                stato_completo: stato,
-                note: note,
-                statistiche: calcolaStatistiche(),
-                patterns: calcolaPattern().slice(0, 5)
-            };
-        }
-
+        // ==================== EXPORT ====================
         exportBtn.addEventListener('click', () => {
-            const data = generaJSON();
-            jsonOutput.textContent = JSON.stringify(data, null, 2);
-            jsonContainer.style.display = 'block';
+            const data = {
+                sessione: { data: new Date().toLocaleString(), durata: timerEl.textContent, contesto: contestoCorrente },
+                stato: stato,
+                patterns: calcolaPattern().slice(0, 10),
+                identita: analizzaIdentita()
+            };
+            alert('📤 JSON generato nella console (F12)');
+            console.log('EXPORT:', JSON.stringify(data, null, 2));
         });
 
-        copiaJson.addEventListener('click', () => {
-            navigator.clipboard.writeText(jsonOutput.textContent);
-            alert('✅ JSON copiato negli appunti!');
-        });
-
-        scaricaJson.addEventListener('click', () => {
-            const blob = new Blob([jsonOutput.textContent], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `analisi_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-        });
-
-        chiudiJson.addEventListener('click', () => {
-            jsonContainer.style.display = 'none';
-        });
-
-        // ==================== NOTE ====================
-        noteBtn.addEventListener('click', () => noteModal.classList.add('show'));
-        annullaNota.addEventListener('click', () => {
-            noteModal.classList.remove('show');
-            noteText.value = '';
-        });
-        
-        salvaNota.addEventListener('click', () => {
-            if (noteText.value.trim()) {
-                note.push({
-                    testo: noteText.value,
-                    timestamp: new Date().toLocaleString(),
-                    contesto: contestoCorrente,
-                    primo_segnale: primoSegnale
-                });
-                localStorage.setItem('notes', JSON.stringify(note));
-                noteModal.classList.remove('show');
-                noteText.value = '';
-                alert('✅ Nota salvata!');
-            }
-        });
-
-        noteModal.addEventListener('click', (e) => {
-            if (e.target === noteModal) {
-                noteModal.classList.remove('show');
-                noteText.value = '';
-            }
-        });
-
-        // ==================== FILTRI ====================
+        // ==================== EVENTI ====================
         filtri.forEach(f => {
             f.addEventListener('click', function() {
                 filtri.forEach(f => f.classList.remove('active'));
@@ -845,12 +858,30 @@
             primoSegnaleLabel.textContent = 'Nessuno';
         });
 
-        contestoSelect.addEventListener('change', (e) => {
-            contestoCorrente = e.target.value;
+        contestoSelect.addEventListener('change', (e) => { contestoCorrente = e.target.value; });
+
+        noteBtn.addEventListener('click', () => noteModal.classList.add('show'));
+        annullaNota.addEventListener('click', () => { noteModal.classList.remove('show'); noteText.value = ''; });
+        salvaNota.addEventListener('click', () => {
+            if (noteText.value.trim()) {
+                note.push({ testo: noteText.value, timestamp: new Date().toLocaleString() });
+                localStorage.setItem('notes', JSON.stringify(note));
+                noteModal.classList.remove('show');
+                noteText.value = '';
+                alert('✅ Nota salvata!');
+            }
         });
+
+        resetBtn.addEventListener('click', () => resetModal.classList.add('show'));
+        annullaReset.addEventListener('click', () => resetModal.classList.remove('show'));
+        confermaReset.addEventListener('click', () => { resetTutto(); resetModal.classList.remove('show'); });
+
+        noteModal.addEventListener('click', (e) => { if (e.target === noteModal) { noteModal.classList.remove('show'); noteText.value = ''; } });
+        resetModal.addEventListener('click', (e) => { if (e.target === resetModal) resetModal.classList.remove('show'); });
 
         // ==================== AVVIO ====================
         renderSegnali();
+        patternCounter.innerHTML = `🧠 ${PATTERN_LIBRARY.length} Pattern Comportamentali - Seleziona i segnali per attivarli`;
     </script>
 </body>
 </html>
