@@ -2,671 +2,827 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisi Comportamentale</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Behavioral Analysis System - Completo</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
-            background: #ecf0f1;
-            padding: 20px;
-        }
-        .container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #1a2634;
+            padding: 15px;
             max-width: 600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 10px;
+            color: #e0e0e0;
+        }
+        .container {
+            background: #2c3e50;
+            border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid #405b73;
         }
         h1 {
-            color: #2c3e50;
-            margin-bottom: 20px;
+            color: #ecf0f1;
             text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         .timer {
             text-align: center;
-            font-size: 2rem;
-            font-family: monospace;
+            font-size: 2.5rem;
+            font-family: 'Courier New', monospace;
+            color: #00ff9d;
             margin-bottom: 20px;
-            color: #3498db;
-        }
-        .context-selector {
-            margin-bottom: 20px;
-        }
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
+            background: #1e2b3a;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #405b73;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+            font-weight: bold;
+            letter-spacing: 5px;
         }
         .primo-segnale {
-            background: #ecf0f1;
-            padding: 10px;
-            border-radius: 5px;
+            background: #1e2b3a;
+            padding: 15px;
+            border-radius: 12px;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-left: 4px solid #00ff9d;
         }
-        .note-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            margin-bottom: 20px;
+        .primo-segnale span:first-child {
+            color: #b0c4de;
+        }
+        #primoSegnaleLabel {
+            font-weight: bold;
+            color: #00ff9d;
+            font-size: 1.1rem;
+        }
+        select, .note-btn, .export-btn {
             width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #405b73;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #1e2b3a;
+            color: #ecf0f1;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        .channel-filters {
+        select:hover, .note-btn:hover, .export-btn:hover {
+            background: #2c3e50;
+            border-color: #00ff9d;
+        }
+        .note-btn { background: #2980b9; border-color: #3498db; }
+        .export-btn { background: #27ae60; border-color: #2ecc71; }
+        
+        .filtri {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        .filter-btn {
+        .filtro {
             flex: 1;
+            min-width: 60px;
             padding: 10px;
             border: none;
-            border-radius: 5px;
-            background: #ecf0f1;
+            border-radius: 8px;
+            background: #1e2b3a;
+            color: #b0c4de;
             cursor: pointer;
+            font-weight: 600;
+            border: 1px solid #405b73;
+            transition: all 0.3s;
         }
-        .filter-btn.active {
-            background: #3498db;
-            color: white;
+        .filtro.active {
+            background: #00ff9d;
+            color: #1a2634;
+            border-color: #00ff9d;
+            box-shadow: 0 0 15px rgba(0,255,157,0.3);
         }
-        #segnaliContainer {
-            margin-bottom: 20px;
+        
+        #segnaliList {
             max-height: 400px;
             overflow-y: auto;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            padding: 5px;
+            scrollbar-width: thin;
+            scrollbar-color: #00ff9d #1e2b3a;
         }
-        .segnale-item {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 10px;
+        #segnaliList::-webkit-scrollbar {
+            width: 6px;
         }
-        .segnale-item.selected {
-            border-left: 4px solid #3498db;
-            background: #f8f9fa;
+        #segnaliList::-webkit-scrollbar-track {
+            background: #1e2b3a;
+            border-radius: 10px;
+        }
+        #segnaliList::-webkit-scrollbar-thumb {
+            background: #00ff9d;
+            border-radius: 10px;
+        }
+        
+        .segnale {
+            background: #1e2b3a;
+            border: 1px solid #405b73;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+        .segnale:hover {
+            border-color: #00ff9d;
+            transform: translateX(5px);
         }
         .segnale-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 10px;
         }
-        .badge {
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 0.8rem;
+        .segnale-nome {
+            font-weight: 600;
+            color: #ecf0f1;
         }
-        .badge-NV { background: #e3f2fd; color: #1976d2; }
-        .badge-PV { background: #fff3e0; color: #f57c00; }
-        .badge-V { background: #e8f5e8; color: #388e3c; }
-        .segnale-pesi {
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-NV { background: #3498db; color: white; }
+        .badge-PV { background: #e67e22; color: white; }
+        .badge-V { background: #27ae60; color: white; }
+        
+        .pesi {
             display: flex;
-            gap: 10px;
+            gap: 5px;
+            margin: 10px 0;
         }
         .peso-btn {
             flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 3px;
+            padding: 10px;
+            border: 1px solid #405b73;
+            background: #2c3e50;
+            color: #b0c4de;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .peso-btn:hover {
+            background: #405b73;
         }
         .peso-btn.active {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
+            background: #00ff9d;
+            color: #1a2634;
+            border-color: #00ff9d;
+            box-shadow: 0 0 10px rgba(0,255,157,0.5);
         }
+        
+        .valore-corrente {
+            font-size: 0.8rem;
+            color: #b0c4de;
+            text-align: right;
+            margin-top: 5px;
+        }
+        
         .analyze-btn {
             width: 100%;
-            padding: 15px;
-            background: #e74c3c;
+            padding: 18px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
             color: white;
             border: none;
-            border-radius: 5px;
-            font-size: 1.2rem;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
             cursor: pointer;
-            margin-bottom: 20px;
+            margin: 20px 0;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 15px rgba(231,76,60,0.4);
+            transition: all 0.3s;
         }
-        .results {
-            background: #ecf0f1;
+        .analyze-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(231,76,60,0.6);
+        }
+        
+        .risultati {
+            background: #1e2b3a;
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 15px;
+            display: none;
+            border: 2px solid #405b73;
             margin-top: 20px;
         }
-        .result-item {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
+        .risultati h3 {
+            color: #00ff9d;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            text-align: center;
         }
-        .congruenza-box {
+        
+        .confronto {
             display: flex;
             justify-content: space-around;
-            margin: 15px 0;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #2c3e50;
+            border-radius: 12px;
+            border: 1px solid #405b73;
         }
-        .canale-box {
+        .canale {
             text-align: center;
-            flex: 1;
         }
-        .canale-valore {
-            font-size: 2rem;
-            font-weight: bold;
+        .valore {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
         }
-        .canale-label {
-            font-size: 0.8rem;
-            color: #7f8c8d;
+        .NV { color: #3498db; text-shadow: 0 0 10px rgba(52,152,219,0.3); }
+        .PV { color: #e67e22; text-shadow: 0 0 10px rgba(230,126,34,0.3); }
+        .V { color: #27ae60; text-shadow: 0 0 10px rgba(39,174,96,0.3); }
+        
+        .result-card {
+            background: #2c3e50;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #00ff9d;
         }
-        .NV { color: #1976d2; }
-        .PV { color: #f57c00; }
-        .V { color: #388e3c; }
+        .pattern-card {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            border-left: 4px solid #f1c40f;
+            text-align: center;
+        }
+        .pattern-badge {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: white;
+        }
+        .pattern-score {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .pattern-cluster {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            color: white;
+        }
+        
+        .intensity-bar {
+            height: 20px;
+            background: #1e2b3a;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+            border: 1px solid #405b73;
+        }
+        .intensity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f1c40f, #e67e22, #e74c3c);
+            width: 0%;
+            transition: width 0.5s;
+            box-shadow: 0 0 10px rgba(231,76,60,0.5);
+        }
+        
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(5px);
+            z-index: 1000;
         }
-        .modal.show {
-            display: flex;
-        }
+        .modal.show { display: flex; }
         .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
+            background: #2c3e50;
+            padding: 25px;
+            border-radius: 20px;
             width: 90%;
             max-width: 400px;
+            border: 2px solid #00ff9d;
+            box-shadow: 0 0 30px rgba(0,255,157,0.2);
+        }
+        .modal-content h3 {
+            color: #00ff9d;
+            margin-bottom: 15px;
         }
         textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px;
+            border: 2px solid #405b73;
+            border-radius: 8px;
             margin: 10px 0;
             font-family: inherit;
+            background: #1e2b3a;
+            color: #ecf0f1;
+            font-size: 1rem;
         }
         .modal-actions {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
         }
-        button {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
+        button { cursor: pointer; }
         .btn-primary {
-            background: #3498db;
+            background: #00ff9d;
+            color: #1a2634;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+        .btn-secondary {
+            background: #405b73;
             color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
         }
-        .hidden {
-            display: none;
-        }
-        .stats-box {
+        .stat-box {
+            background: #2c3e50;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
             font-size: 0.9rem;
-            color: #7f8c8d;
-            margin-top: 5px;
+            color: #b0c4de;
+            border: 1px dashed #405b73;
+        }
+        .badge-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+        .info-badge {
+            background: #00ff9d;
+            color: #1a2634;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .json-export {
+            background: #1e2b3a;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border: 1px solid #405b73;
+            color: #b0c4de;
+        }
+        .controlli-export {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Analisi Comportamentale</h1>
+        <h1>🧠 BEHAVIORAL ANALYSIS</h1>
         
+        <!-- Timer -->
         <div class="timer" id="timer">00:00</div>
         
-        <button class="note-btn" id="noteBtn">📝 Aggiungi Nota</button>
-        
-        <div class="context-selector">
-            <select id="contextSelect">
-                <option value="formale">Formale</option>
-                <option value="informale">Informale</option>
-                <option value="negoziale" selected>Negoziale</option>
-                <option value="conflittuale">Conflittuale</option>
-                <option value="intimo">Intimo</option>
-            </select>
-        </div>
-        
+        <!-- Barra primo segnale -->
         <div class="primo-segnale">
-            <span>📌 Primo segnale: <span id="primoSegnaleLabel">Nessuno</span></span>
-            <button id="resetPrimoBtn">✕</button>
+            <span>📌 PRIMO SEGNALE:</span>
+            <span id="primoSegnaleLabel">Nessuno</span>
+            <button id="resetPrimo" class="btn-secondary" style="padding:5px 10px;">✕</button>
         </div>
         
-        <div class="channel-filters">
-            <button class="filter-btn active" data-filter="all">Tutti</button>
-            <button class="filter-btn" data-filter="NV">NV</button>
-            <button class="filter-btn" data-filter="PV">PV</button>
-            <button class="filter-btn" data-filter="V">V</button>
+        <!-- Controlli principali -->
+        <div style="display: flex; gap: 10px;">
+            <select id="contesto" style="flex: 2;">
+                <option value="formale">🏢 Formale</option>
+                <option value="informale">☕ Informale</option>
+                <option value="negoziale" selected>🤝 Negoziale</option>
+                <option value="conflittuale">⚔️ Conflittuale</option>
+                <option value="intimo">❤️ Intimo</option>
+            </select>
+            <button class="note-btn" id="noteBtn" style="flex: 1;">📝 Note</button>
+            <button class="export-btn" id="exportBtn" style="flex: 1;">📤 Export</button>
         </div>
         
-        <div id="segnaliContainer"></div>
+        <!-- Filtri canale -->
+        <div class="filtri">
+            <button class="filtro active" data-filtro="all">Tutti</button>
+            <button class="filtro" data-filtro="NV">NV</button>
+            <button class="filtro" data-filtro="PV">PV</button>
+            <button class="filtro" data-filtro="V">V</button>
+        </div>
         
-        <button class="analyze-btn" id="analyzeBtn">ANALIZZA</button>
+        <!-- Lista segnali -->
+        <div id="segnaliList"></div>
         
-        <div id="results" class="results hidden">
-            <h3>Risultati Analisi</h3>
+        <!-- Pulsante Analizza -->
+        <button class="analyze-btn" id="analizzaBtn">🔍 ANALIZZA COMPORTAMENTO</button>
+        
+        <!-- Pannello Risultati -->
+        <div class="risultati" id="risultati">
+            <h3>📊 RISULTATI ANALISI</h3>
             
-            <!-- Raffronto NV-PV-V -->
-            <div class="congruenza-box">
-                <div class="canale-box">
-                    <div class="canale-valore NV" id="valoreNV">0</div>
-                    <div class="canale-label">NV</div>
+            <!-- Confronto NV-PV-V -->
+            <div class="confronto">
+                <div class="canale">
+                    <div class="valore NV" id="valoreNV">0</div>
+                    <div style="font-size:0.8rem;">NV</div>
                 </div>
-                <div class="canale-box">
-                    <div class="canale-valore PV" id="valorePV">0</div>
-                    <div class="canale-label">PV</div>
+                <div class="canale">
+                    <div class="valore PV" id="valorePV">0</div>
+                    <div style="font-size:0.8rem;">PV</div>
                 </div>
-                <div class="canale-box">
-                    <div class="canale-valore V" id="valoreV">0</div>
-                    <div class="canale-label">V</div>
+                <div class="canale">
+                    <div class="valore V" id="valoreV">0</div>
+                    <div style="font-size:0.8rem;">V</div>
                 </div>
             </div>
             
-            <div class="result-item" id="patternResult"></div>
-            <div class="result-item" id="intensityResult"></div>
-            <div class="result-item" id="directionResult"></div>
-            <div class="result-item" id="congruenzaResult"></div>
-            <div class="result-item" id="detailsResult"></div>
-            <div class="stats-box" id="statsResult"></div>
+            <!-- Pattern principale -->
+            <div class="result-card pattern-card">
+                <div class="pattern-badge" id="patternNome">-</div>
+                <div class="pattern-score" id="patternScore">0%</div>
+                <div class="pattern-cluster" id="patternCluster"></div>
+            </div>
+            
+            <!-- Pattern secondario -->
+            <div class="result-card" id="secondarioCard" style="display:none;">
+                <strong>📌 Pattern secondario:</strong><br>
+                <span id="secondarioNome"></span> (<span id="secondarioScore"></span>%)
+            </div>
+            
+            <!-- Intensità -->
+            <div class="result-card">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <strong>⚡ Intensità</strong>
+                    <span id="intensitaValore">0%</span>
+                </div>
+                <div class="intensity-bar">
+                    <div class="intensity-fill" id="intensityBar" style="width:0%"></div>
+                </div>
+                <div style="font-size:0.8rem; color:#b0c4de;" id="intensitaDetail"></div>
+            </div>
+            
+            <!-- Direzione e Congruenza -->
+            <div style="display: flex; gap: 10px;">
+                <div class="result-card" style="flex:1;">
+                    <strong>🧭 Direzione</strong><br>
+                    <span id="direzioneText" style="font-size:1.2rem;">-</span>
+                </div>
+                <div class="result-card" style="flex:2;">
+                    <strong>🔄 Congruenza</strong><br>
+                    <span id="congruenzaTipo" style="font-weight:bold;"></span><br>
+                    <span style="font-size:0.8rem;" id="congruenzaDesc"></span>
+                </div>
+            </div>
+            
+            <!-- Statistiche e JSON -->
+            <div class="stat-box" id="statBox"></div>
+            <div id="jsonContainer" style="display:none;">
+                <div class="json-export" id="jsonOutput"></div>
+                <div class="controlli-export">
+                    <button class="btn-primary" id="copiaJson">📋 Copia</button>
+                    <button class="btn-primary" id="scaricaJson">💾 Scarica</button>
+                    <button class="btn-secondary" id="chiudiJson">✕ Chiudi</button>
+                </div>
+            </div>
         </div>
     </div>
     
     <!-- Modal Note -->
     <div class="modal" id="noteModal">
         <div class="modal-content">
-            <h3>Nuova Nota</h3>
-            <textarea id="noteText" rows="4" placeholder="Inserisci la tua osservazione..."></textarea>
+            <h3>📝 NUOVA NOTA</h3>
+            <textarea id="noteText" rows="4" placeholder="Osservazioni sul comportamento..."></textarea>
             <div class="modal-actions">
-                <button id="cancelNoteBtn">Annulla</button>
-                <button class="btn-primary" id="saveNoteBtn">Salva</button>
+                <button class="btn-secondary" id="annullaNota">Annulla</button>
+                <button class="btn-primary" id="salvaNota">Salva</button>
             </div>
         </div>
     </div>
 
     <script>
-        // DATI SEGNALI
+        // ==================== DATI COMPLETI ====================
         const SEGNALI = [
-            { id: "S001", nome: "Respiro corto/toracico", canale: "NV", categoria: "respirazione" },
-            { id: "S002", nome: "Respiro profondo/addominale", canale: "NV", categoria: "respirazione" },
-            { id: "S003", nome: "Trattenere il respiro", canale: "NV", categoria: "respirazione" },
-            { id: "S004", nome: "Micro-tensioni mandibola", canale: "NV", categoria: "tensioni" },
-            { id: "S005", nome: "Micro-tensioni fronte", canale: "NV", categoria: "tensioni" },
-            { id: "S006", nome: "Piedi agitati/ballano", canale: "NV", categoria: "piedi" },
-            { id: "S007", nome: "Piedi orientati verso uscita", canale: "NV", categoria: "piedi" },
-            { id: "S008", nome: "Orientamento frontale", canale: "NV", categoria: "orientamento" },
-            { id: "S009", nome: "Orientamento laterale", canale: "NV", categoria: "orientamento" },
-            { id: "S010", nome: "Sguardo diretto/fisso", canale: "NV", categoria: "sguardo" },
-            { id: "S011", nome: "Sguardo evitante/mobile", canale: "NV", categoria: "sguardo" },
-            { id: "S012", nome: "Postura chiusa", canale: "NV", categoria: "postura" },
-            { id: "S013", nome: "Postura aperta", canale: "NV", categoria: "postura" },
-            { id: "S014", nome: "Automanipolazioni", canale: "NV", categoria: "mani" },
-            { id: "S015", nome: "Mani tese/contratte", canale: "NV", categoria: "mani" },
-            { id: "S016", nome: "Espressività ridotta", canale: "NV", categoria: "espressivita" },
-            { id: "S017", nome: "Espressività aumentata", canale: "NV", categoria: "espressivita" },
-            { id: "S018", nome: "Pause piene (ehm, mmh)", canale: "PV", categoria: "pause" },
-            { id: "S019", nome: "Pause vuote (silenzio)", canale: "PV", categoria: "pause" },
-            { id: "S020", nome: "Ritmo accelerato", canale: "PV", categoria: "ritmo" },
-            { id: "S021", nome: "Ritmo rallentato", canale: "PV", categoria: "ritmo" },
-            { id: "S022", nome: "Volume aumentato", canale: "PV", categoria: "volume" },
-            { id: "S023", nome: "Volume diminuito", canale: "PV", categoria: "volume" },
-            { id: "S024", nome: "Deglutizioni frequenti", canale: "PV", categoria: "altri_pv" },
-            { id: "S025", nome: "Coerenza narrativa alta", canale: "V", categoria: "narrativa" },
-            { id: "S026", nome: "Coerenza narrativa bassa", canale: "V", categoria: "narrativa" },
-            { id: "S027", nome: "Ambiguità lessicale", canale: "V", categoria: "lessico" },
-            { id: "S028", nome: "Lessico ricco/preciso", canale: "V", categoria: "lessico" },
-            { id: "S029", nome: "Tono congruente", canale: "V", categoria: "tono" },
-            { id: "S030", nome: "Tono incongruente", canale: "V", categoria: "tono" }
+            { id: "S001", nome: "Respiro corto/toracico", canale: "NV" },
+            { id: "S002", nome: "Respiro profondo/addominale", canale: "NV" },
+            { id: "S003", nome: "Trattenere il respiro", canale: "NV" },
+            { id: "S004", nome: "Micro-tensioni mandibola", canale: "NV" },
+            { id: "S005", nome: "Micro-tensioni fronte", canale: "NV" },
+            { id: "S006", nome: "Piedi agitati/ballano", canale: "NV" },
+            { id: "S007", nome: "Piedi orientati verso uscita", canale: "NV" },
+            { id: "S008", nome: "Orientamento frontale", canale: "NV" },
+            { id: "S009", nome: "Orientamento laterale", canale: "NV" },
+            { id: "S010", nome: "Sguardo diretto/fisso", canale: "NV" },
+            { id: "S011", nome: "Sguardo evitante/mobile", canale: "NV" },
+            { id: "S012", nome: "Postura chiusa", canale: "NV" },
+            { id: "S013", nome: "Postura aperta", canale: "NV" },
+            { id: "S014", nome: "Automanipolazioni", canale: "NV" },
+            { id: "S015", nome: "Mani tese/contratte", canale: "NV" },
+            { id: "S016", nome: "Espressività ridotta", canale: "NV" },
+            { id: "S017", nome: "Espressività aumentata", canale: "NV" },
+            { id: "S018", nome: "Pause piene (ehm, mmh)", canale: "PV" },
+            { id: "S019", nome: "Pause vuote (silenzio)", canale: "PV" },
+            { id: "S020", nome: "Ritmo accelerato", canale: "PV" },
+            { id: "S021", nome: "Ritmo rallentato", canale: "PV" },
+            { id: "S022", nome: "Volume aumentato", canale: "PV" },
+            { id: "S023", nome: "Volume diminuito", canale: "PV" },
+            { id: "S024", nome: "Deglutizioni frequenti", canale: "PV" },
+            { id: "S025", nome: "Coerenza narrativa alta", canale: "V" },
+            { id: "S026", nome: "Coerenza narrativa bassa", canale: "V" },
+            { id: "S027", nome: "Ambiguità lessicale", canale: "V" },
+            { id: "S028", nome: "Lessico ricco/preciso", canale: "V" },
+            { id: "S029", nome: "Tono congruente", canale: "V" },
+            { id: "S030", nome: "Tono incongruente", canale: "V" }
         ];
 
-        // STATO APPLICAZIONE
-        // ORA OSSERVAZIONE CONTIENE TUTTI I SEGNALI CON IL LORO PESO (INCLUSO 0)
-        let osservazione = {};
+        const PATTERN_LIBRARY = [
+            { nome: "Stress Cognitivo", cluster: "A", segnali: ["S001","S004","S018","S026"], direzione: "fuga" },
+            { nome: "Ansia Sociale", cluster: "A", segnali: ["S007","S011","S012","S023"], direzione: "fuga" },
+            { nome: "Conflitto Interno", cluster: "A", segnali: ["S003","S016","S019","S030"], direzione: "controllo" },
+            { nome: "Over-control", cluster: "A", segnali: ["S003","S016","S021","S023"], direzione: "controllo" },
+            { nome: "Interesse Autentico", cluster: "B", segnali: ["S008","S010","S013","S029"], direzione: "apertura" },
+            { nome: "Seduzione", cluster: "B", segnali: ["S008","S010","S017","S020"], direzione: "approccio" },
+            { nome: "Micro-ritiro", cluster: "B", segnali: ["S007","S009","S011","S019"], direzione: "fuga" },
+            { nome: "Dominanza Naturale", cluster: "C", segnali: ["S002","S008","S010","S013"], direzione: "controllo" },
+            { nome: "Dominanza Aggressiva", cluster: "C", segnali: ["S001","S004","S010","S022"], direzione: "controllo" },
+            { nome: "Leadership Naturale", cluster: "C", segnali: ["S002","S008","S013","S025"], direzione: "controllo" },
+            { nome: "Inganno", cluster: "D", segnali: ["S003","S011","S016","S030"], direzione: "controllo" },
+            { nome: "Manipolazione Soft", cluster: "D", segnali: ["S008","S010","S017","S027"], direzione: "controllo" },
+            { nome: "Manipolazione Hard", cluster: "D", segnali: ["S001","S004","S020","S022"], direzione: "controllo" },
+            { nome: "Cooperazione", cluster: "E", segnali: ["S008","S010","S013","S025"], direzione: "apertura" },
+            { nome: "Resistenza Passiva", cluster: "E", segnali: ["S009","S011","S012","S021"], direzione: "fuga" },
+            { nome: "Resistenza Attiva", cluster: "E", segnali: ["S001","S004","S020","S022"], direzione: "controllo" },
+            { nome: "Baseline Deviation", cluster: "F", segnali: ["S001","S004","S006","S011"], direzione: "varia" },
+            { nome: "Micro-shift Emotivo", cluster: "F", segnali: ["S005","S016","S017","S024"], direzione: "varia" },
+            { nome: "Micro-shift Relazionale", cluster: "F", segnali: ["S007","S008","S009","S011"], direzione: "varia" }
+        ];
+
+        // ==================== STATO ====================
+        let stato = {};
+        SEGNALI.forEach(s => { stato[s.id] = 0; });
+        
         let primoSegnale = null;
-        let note = [];
-        let contesto = 'negoziale';
-        let timerInterval = null;
+        let note = JSON.parse(localStorage.getItem('notes')) || [];
         let secondi = 0;
+        let filtroCorrente = 'all';
+        let contestoCorrente = 'negoziale';
+        let sessionStart = new Date().toISOString();
 
-        // Inizializza osservazione con tutti i segnali a 0
-        SEGNALI.forEach(s => {
-            osservazione[s.id] = 0;
-        });
-
-        // REFERENZE DOM
-        const segnaliContainer = document.getElementById('segnaliContainer');
+        // ==================== DOM ====================
+        const segnaliList = document.getElementById('segnaliList');
         const timerEl = document.getElementById('timer');
         const primoSegnaleLabel = document.getElementById('primoSegnaleLabel');
-        const resetPrimoBtn = document.getElementById('resetPrimoBtn');
-        const contextSelect = document.getElementById('contextSelect');
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        const resultsDiv = document.getElementById('results');
-        const patternResult = document.getElementById('patternResult');
-        const intensityResult = document.getElementById('intensityResult');
-        const directionResult = document.getElementById('directionResult');
-        const congruenzaResult = document.getElementById('congruenzaResult');
-        const detailsResult = document.getElementById('detailsResult');
-        const statsResult = document.getElementById('statsResult');
-        
-        // Elementi per il raffronto NV-PV-V
+        const resetPrimo = document.getElementById('resetPrimo');
+        const contestoSelect = document.getElementById('contesto');
+        const filtri = document.querySelectorAll('.filtro');
+        const analizzaBtn = document.getElementById('analizzaBtn');
+        const risultatiDiv = document.getElementById('risultati');
         const valoreNV = document.getElementById('valoreNV');
         const valorePV = document.getElementById('valorePV');
         const valoreV = document.getElementById('valoreV');
+        const patternNome = document.getElementById('patternNome');
+        const patternScore = document.getElementById('patternScore');
+        const patternCluster = document.getElementById('patternCluster');
+        const intensitaValore = document.getElementById('intensitaValore');
+        const intensityBar = document.getElementById('intensityBar');
+        const intensitaDetail = document.getElementById('intensitaDetail');
+        const direzioneText = document.getElementById('direzioneText');
+        const congruenzaTipo = document.getElementById('congruenzaTipo');
+        const congruenzaDesc = document.getElementById('congruenzaDesc');
+        const secondarioCard = document.getElementById('secondarioCard');
+        const secondarioNome = document.getElementById('secondarioNome');
+        const secondarioScore = document.getElementById('secondarioScore');
+        const statBox = document.getElementById('statBox');
+        const jsonContainer = document.getElementById('jsonContainer');
+        const jsonOutput = document.getElementById('jsonOutput');
         
-        // Note
+        // Bottoni
         const noteBtn = document.getElementById('noteBtn');
+        const exportBtn = document.getElementById('exportBtn');
         const noteModal = document.getElementById('noteModal');
         const noteText = document.getElementById('noteText');
-        const saveNoteBtn = document.getElementById('saveNoteBtn');
-        const cancelNoteBtn = document.getElementById('cancelNoteBtn');
+        const salvaNota = document.getElementById('salvaNota');
+        const annullaNota = document.getElementById('annullaNota');
+        const copiaJson = document.getElementById('copiaJson');
+        const scaricaJson = document.getElementById('scaricaJson');
+        const chiudiJson = document.getElementById('chiudiJson');
 
-        // FUNZIONI
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                secondi++;
-                const min = Math.floor(secondi / 60).toString().padStart(2, '0');
-                const sec = (secondi % 60).toString().padStart(2, '0');
-                timerEl.textContent = `${min}:${sec}`;
-            }, 1000);
-        }
+        // ==================== TIMER ====================
+        setInterval(() => {
+            secondi++;
+            const min = Math.floor(secondi / 60).toString().padStart(2, '0');
+            const sec = (secondi % 60).toString().padStart(2, '0');
+            timerEl.textContent = `${min}:${sec}`;
+        }, 1000);
 
-        function renderSegnali(filter = 'all') {
-            segnaliContainer.innerHTML = '';
+        // ==================== RENDER ====================
+        function renderSegnali() {
+            let html = '';
+            const filtrati = filtroCorrente === 'all' ? SEGNALI : SEGNALI.filter(s => s.canale === filtroCorrente);
             
-            const filtrati = filter === 'all' ? SEGNALI : SEGNALI.filter(s => s.canale === filter);
-            
-            filtrati.forEach(segnale => {
-                const valore = osservazione[segnale.id] || 0;
-                const div = document.createElement('div');
-                div.className = `segnale-item ${valore > 0 ? 'selected' : ''}`;
-                
-                let pesiHtml = '';
-                for (let i = 0; i <= 3; i++) {
-                    pesiHtml += `<button class="peso-btn ${valore === i ? 'active' : ''}" data-id="${segnale.id}" data-peso="${i}">${i}</button>`;
-                }
-                
-                div.innerHTML = `
-                    <div class="segnale-header">
-                        <span><strong>${segnale.nome}</strong></span>
-                        <span class="badge badge-${segnale.canale}">${segnale.canale}</span>
-                    </div>
-                    <div>${segnale.categoria}</div>
-                    <div class="segnale-pesi">
-                        ${pesiHtml}
+            filtrati.forEach(s => {
+                const valore = stato[s.id];
+                html += `
+                    <div class="segnale">
+                        <div class="segnale-header">
+                            <span class="segnale-nome">${s.nome}</span>
+                            <span class="badge badge-${s.canale}">${s.canale}</span>
+                        </div>
+                        <div class="pesi">
+                            <button class="peso-btn ${valore === 0 ? 'active' : ''}" onclick="setPeso('${s.id}', 0)">0</button>
+                            <button class="peso-btn ${valore === 1 ? 'active' : ''}" onclick="setPeso('${s.id}', 1)">1</button>
+                            <button class="peso-btn ${valore === 2 ? 'active' : ''}" onclick="setPeso('${s.id}', 2)">2</button>
+                            <button class="peso-btn ${valore === 3 ? 'active' : ''}" onclick="setPeso('${s.id}', 3)">3</button>
+                            <button class="peso-btn ${valore === 4 ? 'active' : ''}" onclick="setPeso('${s.id}', 4)">4</button>
+                        </div>
+                        <div class="valore-corrente">valore: ${valore}</div>
                     </div>
                 `;
-                
-                segnaliContainer.appendChild(div);
             });
-            
-            // Aggiungi event listeners ai pulsanti peso
-            document.querySelectorAll('.peso-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.dataset.id;
-                    const peso = parseInt(this.dataset.peso);
-                    
-                    // Aggiorna stato - ORA REGISTRIAMO SEMPRE IL VALORE (INCLUSO 0)
-                    const valorePrecedente = osservazione[id];
-                    osservazione[id] = peso;
-                    
-                    // Registra primo segnale solo se è il primo valore > 0
-                    if (!primoSegnale && peso > 0) {
-                        // Controlla se è davvero il primo segnale > 0
-                        const hasOtherPositive = Object.entries(osservazione).some(([key, val]) => val > 0 && key !== id);
-                        if (!hasOtherPositive) {
-                            const segnale = SEGNALI.find(s => s.id === id);
-                            primoSegnale = segnale.nome;
-                            primoSegnaleLabel.textContent = segnale.nome;
-                        }
-                    }
-                    
-                    // Se stiamo resettando a 0 e questo era il primo segnale, resetta anche primoSegnale
-                    if (peso === 0 && primoSegnale) {
-                        const segnalePrimo = SEGNALI.find(s => s.nome === primoSegnale);
-                        if (segnalePrimo && segnalePrimo.id === id) {
-                            // Controlla se ci sono altri segnali > 0
-                            const hasOtherPositive = Object.entries(osservazione).some(([key, val]) => val > 0 && key !== id);
-                            if (!hasOtherPositive) {
-                                primoSegnale = null;
-                                primoSegnaleLabel.textContent = 'Nessuno';
-                            }
-                        }
-                    }
-                    
-                    // Aggiorna UI
-                    document.querySelectorAll(`[data-id="${id}"]`).forEach(b => {
-                        b.classList.remove('active');
-                        if (parseInt(b.dataset.peso) === peso) {
-                            b.classList.add('active');
-                        }
-                    });
-                    
-                    // Aggiorna classe selected sul segnale
-                    const segnaleDiv = this.closest('.segnale-item');
-                    if (segnaleDiv) {
-                        if (peso > 0) {
-                            segnaleDiv.classList.add('selected');
-                        } else {
-                            segnaleDiv.classList.remove('selected');
-                        }
-                    }
-                    
-                    console.log('Osservazione aggiornata:', osservazione);
-                });
-            });
+            segnaliList.innerHTML = html;
         }
 
-        function calcolaMedieCanali() {
-            let sommaNV = 0, sommaPV = 0, sommaV = 0;
-            let countNV = 0, countPV = 0, countV = 0;
-            
-            Object.entries(osservazione).forEach(([id, valore]) => {
+        window.setPeso = function(id, peso) {
+            stato[id] = peso;
+            if (peso > 0 && !primoSegnale) {
                 const segnale = SEGNALI.find(s => s.id === id);
-                if (segnale) {
-                    if (segnale.canale === 'NV') {
-                        sommaNV += valore;
-                        if (valore > 0) countNV++;
-                    } else if (segnale.canale === 'PV') {
-                        sommaPV += valore;
-                        if (valore > 0) countPV++;
-                    } else if (segnale.canale === 'V') {
-                        sommaV += valore;
-                        if (valore > 0) countV++;
+                primoSegnale = segnale.nome;
+                primoSegnaleLabel.textContent = segnale.nome;
+            }
+            if (peso === 0 && primoSegnale) {
+                const segnalePrimo = SEGNALI.find(s => s.nome === primoSegnale);
+                if (segnalePrimo && segnalePrimo.id === id) {
+                    const altri = Object.entries(stato).some(([key, val]) => val > 0 && key !== id);
+                    if (!altri) {
+                        primoSegnale = null;
+                        primoSegnaleLabel.textContent = 'Nessuno';
                     }
                 }
+            }
+            renderSegnali();
+        };
+
+        // ==================== ANALISI ====================
+        function calcolaStatistiche() {
+            let sommaNV = 0, sommaPV = 0, sommaV = 0;
+            let countNV = 0, countPV = 0, countV = 0;
+            SEGNALI.forEach(s => {
+                const val = stato[s.id];
+                if (s.canale === 'NV') { sommaNV += val; countNV++; }
+                if (s.canale === 'PV') { sommaPV += val; countPV++; }
+                if (s.canale === 'V') { sommaV += val; countV++; }
             });
-            
-            // Calcola medie considerando TUTTI i segnali del canale (inclusi quelli a 0)
-            const totaliNV = SEGNALI.filter(s => s.canale === 'NV').length;
-            const totaliPV = SEGNALI.filter(s => s.canale === 'PV').length;
-            const totaliV = SEGNALI.filter(s => s.canale === 'V').length;
-            
-            const mediaNV = totaliNV > 0 ? (sommaNV / totaliNV).toFixed(1) : '0';
-            const mediaPV = totaliPV > 0 ? (sommaPV / totaliPV).toFixed(1) : '0';
-            const mediaV = totaliV > 0 ? (sommaV / totaliV).toFixed(1) : '0';
-            
-            return { 
-                mediaNV, mediaPV, mediaV, 
-                countNV, countPV, countV,
-                totaliNV, totaliPV, totaliV,
-                sommaNV, sommaPV, sommaV
+            return {
+                mediaNV: (sommaNV / countNV).toFixed(1),
+                mediaPV: (sommaPV / countPV).toFixed(1),
+                mediaV: (sommaV / countV).toFixed(1),
+                sommaNV, sommaPV, sommaV, countNV, countPV, countV
             };
         }
 
-        function determinaCongruenza(mediaNV, mediaPV, mediaV) {
-            const nv = parseFloat(mediaNV);
-            const pv = parseFloat(mediaPV);
-            const v = parseFloat(mediaV);
-            
-            // Regola NV > PV > V
-            if (nv > pv && pv > v) {
-                return { tipo: '✅ Autentico', desc: 'NV > PV > V - Pattern autentico' };
-            } else if (nv === pv && pv === v) {
-                return { tipo: '🟦 Piena congruenza', desc: 'Tutti i canali allineati' };
-            } else if (nv === pv && nv > v) {
-                return { tipo: '⚠️ Dissonanza emotiva', desc: 'NV e PV allineati, V più basso' };
-            } else if (nv === pv && nv < v) {
-                return { tipo: '⚠️ Dissonanza emotiva', desc: 'NV e PV allineati, V più alto' };
-            } else if (pv === v && nv > pv) {
-                return { tipo: '🔄 Controllo', desc: 'PV e V allineati, NV più alto (possibile controllo)' };
-            } else if (pv === v && nv < pv) {
-                return { tipo: '🔄 Controllo', desc: 'PV e V allineati, NV più basso (possibile inibizione)' };
-            } else if (nv < pv && pv < v) {
-                return { tipo: '⚠️ Invertito', desc: 'Pattern invertito: V > PV > NV' };
-            } else {
-                return { tipo: '❓ Misto', desc: 'Pattern non chiaramente definito' };
-            }
+        function calcolaPattern() {
+            return PATTERN_LIBRARY.map(p => {
+                let score = 0, max = p.segnali.length * 4;
+                p.segnali.forEach(id => score += stato[id] || 0);
+                return { ...p, score: Math.round((score / max) * 100) };
+            }).filter(p => p.score > 0).sort((a, b) => b.score - a.score);
         }
 
-        function analizza() {
-            // Conta quanti segnali hanno valore > 0
-            const segnaliAttivi = Object.entries(osservazione).filter(([_, val]) => val > 0).length;
+        function determinaCongruenza(nv, pv, v) {
+            const n = parseFloat(nv), p = parseFloat(pv), vv = parseFloat(v);
+            if (n > p && p > vv) return { tipo: '✅ AUTENTICO', desc: 'NV > PV > V - Pattern autentico' };
+            if (n === p && p === vv) return { tipo: '🟦 ALLINEATO', desc: 'Tutti i canali allineati' };
+            if (n === p && n > vv) return { tipo: '⚠️ DISSONANZA', desc: 'NV e PV allineati, V più basso' };
+            if (n === p && n < vv) return { tipo: '⚠️ DISSONANZA', desc: 'NV e PV allineati, V più alto' };
+            if (p === vv && n > p) return { tipo: '🔄 CONTROLLO', desc: 'NV più alto di PV e V allineati' };
+            if (p === vv && n < p) return { tipo: '🔄 INIBITO', desc: 'NV più basso di PV e V allineati' };
+            return { tipo: '❓ MISTO', desc: 'Pattern non chiaramente definito' };
+        }
+
+        analizzaBtn.addEventListener('click', () => {
+            const stats = calcolaStatistiche();
+            const patterns = calcolaPattern();
+            const principale = patterns[0] || { nome: 'Nessuno', score: 0, cluster: '-', direzione: '-' };
+            const secondario = patterns[1] || null;
+            const congruenza = determinaCongruenza(stats.mediaNV, stats.mediaPV, stats.mediaV);
             
-            if (segnaliAttivi === 0) {
-                alert('Seleziona almeno un segnale con valore > 0');
-                return;
-            }
+            const valoriAttivi = Object.values(stato).filter(v => v > 0);
+            const mediaTotale = valoriAttivi.length ? 
+                (valoriAttivi.reduce((a, b) => a + b, 0) / valoriAttivi.length) : 0;
+            const intensita = valoriAttivi.length ? Math.round((mediaTotale / 4) * 100) : 0;
             
-            // Calcola medie per canale
-            const stats = calcolaMedieCanali();
-            
-            // Aggiorna raffronto NV-PV-V
             valoreNV.textContent = stats.mediaNV;
             valorePV.textContent = stats.mediaPV;
             valoreV.textContent = stats.mediaV;
             
-            // Determina pattern in base ai segnali con valore >= 2
-            let pattern = 'Cooperazione';
-            let score = 65;
-            let direzione = 'apertura';
+            patternNome.textContent = principale.nome;
+            patternScore.textContent = principale.score + '%';
+            patternCluster.textContent = `Cluster ${principale.cluster}`;
             
-            const stressSignals = ['S001', 'S004', 'S018'].some(id => osservazione[id] >= 2);
-            const ansiaSignals = ['S007', 'S011', 'S012'].some(id => osservazione[id] >= 2);
-            const aperturaSignals = ['S008', 'S010', 'S013'].some(id => osservazione[id] >= 2);
-            const controlloSignals = ['S002', 'S022'].some(id => osservazione[id] >= 2);
+            intensitaValore.textContent = intensita + '%';
+            intensityBar.style.width = intensita + '%';
+            intensitaDetail.textContent = `${valoriAttivi.length} segnali attivi, media ${mediaTotale.toFixed(1)}/4`;
             
-            if (stressSignals) {
-                pattern = 'Stress Cognitivo';
-                direzione = 'fuga';
-                score = 70 + Math.floor(Math.random() * 15);
-            } else if (ansiaSignals) {
-                pattern = 'Ansia Sociale';
-                direzione = 'fuga';
-                score = 65 + Math.floor(Math.random() * 15);
-            } else if (aperturaSignals) {
-                pattern = 'Interesse Autentico';
-                direzione = 'apertura';
-                score = 60 + Math.floor(Math.random() * 20);
-            } else if (controlloSignals) {
-                pattern = 'Dominanza Naturale';
-                direzione = 'controllo';
-                score = 55 + Math.floor(Math.random() * 20);
-            }
+            direzioneText.textContent = principale.direzione;
+            congruenzaTipo.textContent = congruenza.tipo;
+            congruenzaDesc.textContent = congruenza.desc;
             
-            // Calcola intensità (solo sui segnali attivi)
-            const valoriAttivi = Object.entries(osservazione)
-                .filter(([_, val]) => val > 0)
-                .map(([_, val]) => val);
+            if (secondario) {
+                secondarioCard.style.display = 'block';
+                secondarioNome.textContent = secondario.nome;
+                secondarioScore.textContent = secondario.score;
+            } else secondarioCard.style.display = 'none';
             
-            const mediaAttivi = valoriAttivi.reduce((a, b) => a + b, 0) / valoriAttivi.length;
-            const intensita = Math.round((mediaAttivi / 3) * 100);
-            
-            // Determina congruenza
-            const congruenza = determinaCongruenza(stats.mediaNV, stats.mediaPV, stats.mediaV);
-            
-            // Mostra risultati
-            patternResult.innerHTML = `<strong>Pattern:</strong> ${pattern} (${score}%)`;
-            intensityResult.innerHTML = `<strong>Intensità:</strong> ${intensita}% (su ${segnaliAttivi} segnali attivi)`;
-            directionResult.innerHTML = `<strong>Direzione:</strong> ${direzione}`;
-            congruenzaResult.innerHTML = `<strong>Congruenza:</strong> ${congruenza.tipo}<br><small>${congruenza.desc}</small>`;
-            
-            // Dettagli completi
-            detailsResult.innerHTML = `
-                <strong>Segnali attivi:</strong> NV:${stats.countNV}, PV:${stats.countPV}, V:${stats.countV}<br>
-                <strong>Medie per canale:</strong> NV=${stats.mediaNV}, PV=${stats.mediaPV}, V=${stats.mediaV}
+            statBox.innerHTML = `
+                📊 Segnali attivi: ${valoriAttivi.length}/${SEGNALI.length}<br>
+                📌 Primo segnale: ${primoSegnale || 'nessuno'}<br>
+                🎯 Contesto: ${contestoCorrente}<br>
+                📈 Pattern trovati: ${patterns.length}
             `;
             
-            // Statistiche complete
-            statsResult.innerHTML = `
-                📊 Totali canale: NV:${stats.sommaNV}/${stats.totaliNV*3}, PV:${stats.sommaPV}/${stats.totaliPV*3}, V:${stats.sommaV}/${stats.totaliV*3}
-            `;
-            
-            resultsDiv.classList.remove('hidden');
+            risultatiDiv.style.display = 'block';
+        });
+
+        // ==================== EXPORT JSON ====================
+        function generaJSON() {
+            return {
+                sessione: {
+                    data: new Date().toLocaleString(),
+                    durata: timerEl.textContent,
+                    contesto: contestoCorrente,
+                    primo_segnale: primoSegnale
+                },
+                stato_completo: stato,
+                note: note,
+                statistiche: calcolaStatistiche(),
+                patterns: calcolaPattern().slice(0, 5)
+            };
         }
 
-        // EVENT LISTENERS
-        startTimer();
-
-        // Filtri
-        filterBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                filterBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                renderSegnali(this.dataset.filter);
-            });
+        exportBtn.addEventListener('click', () => {
+            const data = generaJSON();
+            jsonOutput.textContent = JSON.stringify(data, null, 2);
+            jsonContainer.style.display = 'block';
         });
 
-        // Reset primo segnale
-        resetPrimoBtn.addEventListener('click', () => {
-            primoSegnale = null;
-            primoSegnaleLabel.textContent = 'Nessuno';
+        copiaJson.addEventListener('click', () => {
+            navigator.clipboard.writeText(jsonOutput.textContent);
+            alert('✅ JSON copiato negli appunti!');
         });
 
-        // Contesto
-        contextSelect.addEventListener('change', (e) => {
-            contesto = e.target.value;
-            console.log('Contesto:', contesto);
+        scaricaJson.addEventListener('click', () => {
+            const blob = new Blob([jsonOutput.textContent], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `analisi_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
         });
 
-        // Analizza
-        analyzeBtn.addEventListener('click', analizza);
-
-        // Note
-        noteBtn.addEventListener('click', () => {
-            noteModal.classList.add('show');
+        chiudiJson.addEventListener('click', () => {
+            jsonContainer.style.display = 'none';
         });
 
-        cancelNoteBtn.addEventListener('click', () => {
+        // ==================== NOTE ====================
+        noteBtn.addEventListener('click', () => noteModal.classList.add('show'));
+        annullaNota.addEventListener('click', () => {
             noteModal.classList.remove('show');
             noteText.value = '';
         });
-
-        saveNoteBtn.addEventListener('click', () => {
-            const testo = noteText.value.trim();
-            if (testo) {
-                // Crea una copia solo dei segnali con valore > 0 per la nota
-                const osservazioneAttiva = {};
-                Object.entries(osservazione).forEach(([id, val]) => {
-                    if (val > 0) osservazioneAttiva[id] = val;
-                });
-                
+        
+        salvaNota.addEventListener('click', () => {
+            if (noteText.value.trim()) {
                 note.push({
-                    testo,
+                    testo: noteText.value,
                     timestamp: new Date().toLocaleString(),
-                    osservazione: osservazioneAttiva
+                    contesto: contestoCorrente,
+                    primo_segnale: primoSegnale
                 });
+                localStorage.setItem('notes', JSON.stringify(note));
                 noteModal.classList.remove('show');
                 noteText.value = '';
-                alert('Nota salvata!');
-                console.log('Note:', note);
+                alert('✅ Nota salvata!');
             }
         });
 
-        // Chiudi modal cliccando fuori
         noteModal.addEventListener('click', (e) => {
             if (e.target === noteModal) {
                 noteModal.classList.remove('show');
@@ -674,7 +830,26 @@
             }
         });
 
-        // Render iniziale
+        // ==================== FILTRI ====================
+        filtri.forEach(f => {
+            f.addEventListener('click', function() {
+                filtri.forEach(f => f.classList.remove('active'));
+                this.classList.add('active');
+                filtroCorrente = this.dataset.filtro;
+                renderSegnali();
+            });
+        });
+
+        resetPrimo.addEventListener('click', () => {
+            primoSegnale = null;
+            primoSegnaleLabel.textContent = 'Nessuno';
+        });
+
+        contestoSelect.addEventListener('change', (e) => {
+            contestoCorrente = e.target.value;
+        });
+
+        // ==================== AVVIO ====================
         renderSegnali();
     </script>
 </body>
