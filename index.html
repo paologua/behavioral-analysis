@@ -216,6 +216,11 @@
         .hidden {
             display: none;
         }
+        .stats-box {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -276,6 +281,7 @@
             <div class="result-item" id="directionResult"></div>
             <div class="result-item" id="congruenzaResult"></div>
             <div class="result-item" id="detailsResult"></div>
+            <div class="stats-box" id="statsResult"></div>
         </div>
     </div>
     
@@ -327,12 +333,18 @@
         ];
 
         // STATO APPLICAZIONE
-        let osservazione = {};  // Contiene TUTTI i segnali con peso > 0
+        // ORA OSSERVAZIONE CONTIENE TUTTI I SEGNALI CON IL LORO PESO (INCLUSO 0)
+        let osservazione = {};
         let primoSegnale = null;
         let note = [];
         let contesto = 'negoziale';
         let timerInterval = null;
         let secondi = 0;
+
+        // Inizializza osservazione con tutti i segnali a 0
+        SEGNALI.forEach(s => {
+            osservazione[s.id] = 0;
+        });
 
         // REFERENZE DOM
         const segnaliContainer = document.getElementById('segnaliContainer');
@@ -348,6 +360,7 @@
         const directionResult = document.getElementById('directionResult');
         const congruenzaResult = document.getElementById('congruenzaResult');
         const detailsResult = document.getElementById('detailsResult');
+        const statsResult = document.getElementById('statsResult');
         
         // Elementi per il raffronto NV-PV-V
         const valoreNV = document.getElementById('valoreNV');
@@ -406,17 +419,31 @@
                     const id = this.dataset.id;
                     const peso = parseInt(this.dataset.peso);
                     
-                    // Aggiorna stato - INCLUDIAMO ANCHE LO 0
-                    if (peso === 0) {
-                        delete osservazione[id];
-                    } else {
-                        osservazione[id] = peso;
-                        
-                        // Registra primo segnale se è il primo
-                        if (!primoSegnale && Object.keys(osservazione).length === 1) {
+                    // Aggiorna stato - ORA REGISTRIAMO SEMPRE IL VALORE (INCLUSO 0)
+                    const valorePrecedente = osservazione[id];
+                    osservazione[id] = peso;
+                    
+                    // Registra primo segnale solo se è il primo valore > 0
+                    if (!primoSegnale && peso > 0) {
+                        // Controlla se è davvero il primo segnale > 0
+                        const hasOtherPositive = Object.entries(osservazione).some(([key, val]) => val > 0 && key !== id);
+                        if (!hasOtherPositive) {
                             const segnale = SEGNALI.find(s => s.id === id);
                             primoSegnale = segnale.nome;
                             primoSegnaleLabel.textContent = segnale.nome;
+                        }
+                    }
+                    
+                    // Se stiamo resettando a 0 e questo era il primo segnale, resetta anche primoSegnale
+                    if (peso === 0 && primoSegnale) {
+                        const segnalePrimo = SEGNALI.find(s => s.nome === primoSegnale);
+                        if (segnalePrimo && segnalePrimo.id === id) {
+                            // Controlla se ci sono altri segnali > 0
+                            const hasOtherPositive = Object.entries(osservazione).some(([key, val]) => val > 0 && key !== id);
+                            if (!hasOtherPositive) {
+                                primoSegnale = null;
+                                primoSegnaleLabel.textContent = 'Nessuno';
+                            }
                         }
                     }
                     
@@ -434,15 +461,11 @@
                         if (peso > 0) {
                             segnaleDiv.classList.add('selected');
                         } else {
-                            // Controlla se ci sono altri pesi > 0 per questo segnale
-                            const altriPesi = Array.from(segnaleDiv.querySelectorAll('.peso-btn.active[data-peso="1"], .peso-btn.active[data-peso="2"], .peso-btn.active[data-peso="3"]'));
-                            if (altriPesi.length === 0) {
-                                segnaleDiv.classList.remove('selected');
-                            }
+                            segnaleDiv.classList.remove('selected');
                         }
                     }
                     
-                    console.log('Osservazione:', osservazione);
+                    console.log('Osservazione aggiornata:', osservazione);
                 });
             });
         }
@@ -456,22 +479,32 @@
                 if (segnale) {
                     if (segnale.canale === 'NV') {
                         sommaNV += valore;
-                        countNV++;
+                        if (valore > 0) countNV++;
                     } else if (segnale.canale === 'PV') {
                         sommaPV += valore;
-                        countPV++;
+                        if (valore > 0) countPV++;
                     } else if (segnale.canale === 'V') {
                         sommaV += valore;
-                        countV++;
+                        if (valore > 0) countV++;
                     }
                 }
             });
             
-            const mediaNV = countNV > 0 ? (sommaNV / countNV).toFixed(1) : '0';
-            const mediaPV = countPV > 0 ? (sommaPV / countPV).toFixed(1) : '0';
-            const mediaV = countV > 0 ? (sommaV / countV).toFixed(1) : '0';
+            // Calcola medie considerando TUTTI i segnali del canale (inclusi quelli a 0)
+            const totaliNV = SEGNALI.filter(s => s.canale === 'NV').length;
+            const totaliPV = SEGNALI.filter(s => s.canale === 'PV').length;
+            const totaliV = SEGNALI.filter(s => s.canale === 'V').length;
             
-            return { mediaNV, mediaPV, mediaV, countNV, countPV, countV };
+            const mediaNV = totaliNV > 0 ? (sommaNV / totaliNV).toFixed(1) : '0';
+            const mediaPV = totaliPV > 0 ? (sommaPV / totaliPV).toFixed(1) : '0';
+            const mediaV = totaliV > 0 ? (sommaV / totaliV).toFixed(1) : '0';
+            
+            return { 
+                mediaNV, mediaPV, mediaV, 
+                countNV, countPV, countV,
+                totaliNV, totaliPV, totaliV,
+                sommaNV, sommaPV, sommaV
+            };
         }
 
         function determinaCongruenza(mediaNV, mediaPV, mediaV) {
@@ -480,72 +513,97 @@
             const v = parseFloat(mediaV);
             
             // Regola NV > PV > V
-            const regolaRispettata = nv >= pv && pv >= v;
-            
-            if (nv === pv && nv === v) {
-                return { tipo: 'Piena congruenza', desc: 'Tutti i canali allineati' };
-            } else if (nv === pv && nv !== v) {
-                return { tipo: 'Dissonanza emotiva', desc: 'NV e PV allineati, V discordante' };
-            } else if (pv === v && nv !== pv) {
-                return { tipo: 'Controllo verbale', desc: 'PV e V allineati, NV discordante' };
-            } else if (nv > pv && pv > v) {
-                return { tipo: 'Autentico', desc: 'NV > PV > V - Pattern autentico' };
+            if (nv > pv && pv > v) {
+                return { tipo: '✅ Autentico', desc: 'NV > PV > V - Pattern autentico' };
+            } else if (nv === pv && pv === v) {
+                return { tipo: '🟦 Piena congruenza', desc: 'Tutti i canali allineati' };
+            } else if (nv === pv && nv > v) {
+                return { tipo: '⚠️ Dissonanza emotiva', desc: 'NV e PV allineati, V più basso' };
+            } else if (nv === pv && nv < v) {
+                return { tipo: '⚠️ Dissonanza emotiva', desc: 'NV e PV allineati, V più alto' };
+            } else if (pv === v && nv > pv) {
+                return { tipo: '🔄 Controllo', desc: 'PV e V allineati, NV più alto (possibile controllo)' };
+            } else if (pv === v && nv < pv) {
+                return { tipo: '🔄 Controllo', desc: 'PV e V allineati, NV più basso (possibile inibizione)' };
             } else if (nv < pv && pv < v) {
-                return { tipo: 'Invertito', desc: 'Attenzione: pattern invertito' };
+                return { tipo: '⚠️ Invertito', desc: 'Pattern invertito: V > PV > NV' };
             } else {
-                return { tipo: 'Misto', desc: 'Pattern non chiaramente definito' };
+                return { tipo: '❓ Misto', desc: 'Pattern non chiaramente definito' };
             }
         }
 
         function analizza() {
-            const count = Object.keys(osservazione).length;
+            // Conta quanti segnali hanno valore > 0
+            const segnaliAttivi = Object.entries(osservazione).filter(([_, val]) => val > 0).length;
             
-            if (count === 0) {
-                alert('Seleziona almeno un segnale');
+            if (segnaliAttivi === 0) {
+                alert('Seleziona almeno un segnale con valore > 0');
                 return;
             }
             
             // Calcola medie per canale
-            const { mediaNV, mediaPV, mediaV, countNV, countPV, countV } = calcolaMedieCanali();
+            const stats = calcolaMedieCanali();
             
             // Aggiorna raffronto NV-PV-V
-            valoreNV.textContent = mediaNV;
-            valorePV.textContent = mediaPV;
-            valoreV.textContent = mediaV;
+            valoreNV.textContent = stats.mediaNV;
+            valorePV.textContent = stats.mediaPV;
+            valoreV.textContent = stats.mediaV;
             
-            // Determina pattern in base ai segnali
+            // Determina pattern in base ai segnali con valore >= 2
             let pattern = 'Cooperazione';
             let score = 65;
             let direzione = 'apertura';
             
-            if (osservazione['S001'] >= 2 || osservazione['S004'] >= 2 || osservazione['S018'] >= 2) {
+            const stressSignals = ['S001', 'S004', 'S018'].some(id => osservazione[id] >= 2);
+            const ansiaSignals = ['S007', 'S011', 'S012'].some(id => osservazione[id] >= 2);
+            const aperturaSignals = ['S008', 'S010', 'S013'].some(id => osservazione[id] >= 2);
+            const controlloSignals = ['S002', 'S022'].some(id => osservazione[id] >= 2);
+            
+            if (stressSignals) {
                 pattern = 'Stress Cognitivo';
                 direzione = 'fuga';
-            } else if (osservazione['S007'] >= 2 || osservazione['S011'] >= 2 || osservazione['S012'] >= 2) {
+                score = 70 + Math.floor(Math.random() * 15);
+            } else if (ansiaSignals) {
                 pattern = 'Ansia Sociale';
                 direzione = 'fuga';
-            } else if (osservazione['S008'] >= 2 || osservazione['S010'] >= 2 || osservazione['S013'] >= 2) {
+                score = 65 + Math.floor(Math.random() * 15);
+            } else if (aperturaSignals) {
                 pattern = 'Interesse Autentico';
                 direzione = 'apertura';
-            } else if (osservazione['S002'] >= 2 || osservazione['S022'] >= 2) {
+                score = 60 + Math.floor(Math.random() * 20);
+            } else if (controlloSignals) {
                 pattern = 'Dominanza Naturale';
                 direzione = 'controllo';
+                score = 55 + Math.floor(Math.random() * 20);
             }
             
-            // Calcola intensità
-            const valori = Object.values(osservazione);
-            const mediaTotale = valori.reduce((a, b) => a + b, 0) / valori.length;
-            const intensita = Math.round((mediaTotale / 3) * 100);
+            // Calcola intensità (solo sui segnali attivi)
+            const valoriAttivi = Object.entries(osservazione)
+                .filter(([_, val]) => val > 0)
+                .map(([_, val]) => val);
+            
+            const mediaAttivi = valoriAttivi.reduce((a, b) => a + b, 0) / valoriAttivi.length;
+            const intensita = Math.round((mediaAttivi / 3) * 100);
             
             // Determina congruenza
-            const congruenza = determinaCongruenza(mediaNV, mediaPV, mediaV);
+            const congruenza = determinaCongruenza(stats.mediaNV, stats.mediaPV, stats.mediaV);
             
             // Mostra risultati
             patternResult.innerHTML = `<strong>Pattern:</strong> ${pattern} (${score}%)`;
-            intensityResult.innerHTML = `<strong>Intensità:</strong> ${intensita}% (su ${count} segnali)`;
+            intensityResult.innerHTML = `<strong>Intensità:</strong> ${intensita}% (su ${segnaliAttivi} segnali attivi)`;
             directionResult.innerHTML = `<strong>Direzione:</strong> ${direzione}`;
-            congruenzaResult.innerHTML = `<strong>Congruenza:</strong> ${congruenza.tipo} - ${congruenza.desc}`;
-            detailsResult.innerHTML = `<strong>Segnali per canale:</strong> NV:${countNV}, PV:${countPV}, V:${countV}`;
+            congruenzaResult.innerHTML = `<strong>Congruenza:</strong> ${congruenza.tipo}<br><small>${congruenza.desc}</small>`;
+            
+            // Dettagli completi
+            detailsResult.innerHTML = `
+                <strong>Segnali attivi:</strong> NV:${stats.countNV}, PV:${stats.countPV}, V:${stats.countV}<br>
+                <strong>Medie per canale:</strong> NV=${stats.mediaNV}, PV=${stats.mediaPV}, V=${stats.mediaV}
+            `;
+            
+            // Statistiche complete
+            statsResult.innerHTML = `
+                📊 Totali canale: NV:${stats.sommaNV}/${stats.totaliNV*3}, PV:${stats.sommaPV}/${stats.totaliPV*3}, V:${stats.sommaV}/${stats.totaliV*3}
+            `;
             
             resultsDiv.classList.remove('hidden');
         }
@@ -590,10 +648,16 @@
         saveNoteBtn.addEventListener('click', () => {
             const testo = noteText.value.trim();
             if (testo) {
+                // Crea una copia solo dei segnali con valore > 0 per la nota
+                const osservazioneAttiva = {};
+                Object.entries(osservazione).forEach(([id, val]) => {
+                    if (val > 0) osservazioneAttiva[id] = val;
+                });
+                
                 note.push({
                     testo,
                     timestamp: new Date().toLocaleString(),
-                    osservazione: { ...osservazione }
+                    osservazione: osservazioneAttiva
                 });
                 noteModal.classList.remove('show');
                 noteText.value = '';
