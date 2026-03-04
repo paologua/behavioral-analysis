@@ -4,289 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Behavioral Analysis System</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --success: #27ae60;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.6;
-        }
-        .app-container {
-            max-width: 600px;
-            margin: 0 auto;
-            min-height: 100vh;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
-        }
-        .app-header {
-            background: var(--primary);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .app-header h1 { font-size: 1.5rem; font-weight: 500; }
-        #sessionTimer { font-family: monospace; font-size: 1.2rem; }
-        .main-content { padding: 1rem; padding-bottom: 80px; }
-        
-        .context-selector {
-            margin-bottom: 1rem;
-            background: var(--light);
-            padding: 0.75rem;
-            border-radius: 8px;
-        }
-        .context-selector select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 0.25rem;
-        }
-        
-        .channel-filters {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            background: var(--light);
-            padding: 0.5rem;
-            border-radius: 8px;
-        }
-        .filter-btn {
-            flex: 1;
-            padding: 0.5rem;
-            border: none;
-            border-radius: 4px;
-            background: white;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .filter-btn.active {
-            background: var(--secondary);
-            color: white;
-        }
-        
-        .primo-segnale {
-            background: var(--light);
-            padding: 0.75rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #primoSegnaleLabel {
-            font-weight: 500;
-            color: var(--secondary);
-        }
-        #resetPrimoBtn {
-            background: none;
-            border: none;
-            color: var(--accent);
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-        }
-        
-        #segnaliContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        .segnale-item {
-            background: white;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .segnale-item.highlight {
-            border-left: 4px solid var(--secondary);
-            background: #f8f9fa;
-        }
-        .segnale-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        .segnale-nome {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-        .segnale-badge {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-        .badge-NV { background: #e3f2fd; color: #1976d2; }
-        .badge-PV { background: #fff3e0; color: #f57c00; }
-        .badge-V { background: #e8f5e8; color: #388e3c; }
-        .segnale-categoria {
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-bottom: 0.5rem;
-        }
-        .segnale-pesi {
-            display: flex;
-            gap: 0.5rem;
-        }
-        .peso-btn {
-            flex: 1;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .peso-btn.active {
-            background: var(--secondary);
-            color: white;
-            border-color: var(--secondary);
-        }
-        
-        .analyze-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 1rem;
-            background: linear-gradient(to top, white 80%, transparent);
-        }
-        .analyze-btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-        }
-        
-        .results-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            z-index: 20;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-        .results-panel.hidden { display: none; }
-        .results-header {
-            background: var(--primary);
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-        }
-        .results-content { padding: 1rem; }
-        .result-card {
-            background: var(--light);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-        .pattern-card {
-            text-align: center;
-            background: linear-gradient(135deg, var(--primary), #34495e);
-            color: white;
-        }
-        .pattern-badge { font-size: 1.5rem; font-weight: 600; }
-        .pattern-score { font-size: 2.5rem; font-weight: 700; }
-        .intensity-bar {
-            height: 20px;
-            background: #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            margin: 0.5rem 0;
-        }
-        .intensity-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f1c40f, #e67e22, #e74c3c);
-            transition: width 0.3s;
-        }
-        .direction-badge {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background: var(--secondary);
-            color: white;
-            border-radius: 20px;
-            font-weight: 600;
-            margin: 0.5rem 0;
-        }
-        .icon-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-        }
-        .hidden { display: none !important; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
+        <!-- Header -->
         <header class="app-header">
             <h1>Analisi Comportamentale</h1>
-            <span id="sessionTimer">00:00</span>
+            <div class="header-controls">
+                <button id="menuBtn" class="icon-btn">☰</button>
+                <span id="sessionTimer">00:00</span>
+            </div>
         </header>
 
+        <!-- Menu a tendina -->
+        <div id="slideMenu" class="slide-menu hidden">
+            <div class="menu-header">
+                <h3>Menu</h3>
+                <button id="closeMenuBtn" class="icon-btn">✕</button>
+            </div>
+            <div class="menu-content">
+                <button id="newSessionBtn" class="menu-item">Nuova Sessione</button>
+                <button id="baselineBtn" class="menu-item">Costruisci Baseline</button>
+                <button id="exportBtn" class="menu-item">Esporta JSON</button>
+                <button id="settingsBtn" class="menu-item">Impostazioni</button>
+                <hr>
+                <div class="context-selector">
+                    <label>Contesto:</label>
+                    <select id="contextSelect">
+                        <option value="formale">Formale</option>
+                        <option value="informale">Informale</option>
+                        <option value="negoziale" selected>Negoziale</option>
+                        <option value="conflittuale">Conflittuale</option>
+                        <option value="intimo">Intimo</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
         <main class="main-content">
-            <div class="context-selector">
-                <label for="contextSelect">Contesto:</label>
-                <select id="contextSelect">
-                    <option value="formale">Formale</option>
-                    <option value="informale">Informale</option>
-                    <option value="negoziale" selected>Negoziale</option>
-                    <option value="conflittuale">Conflittuale</option>
-                    <option value="intimo">Intimo</option>
-                </select>
+            <!-- Pannello di controllo rapido -->
+            <div class="quick-controls">
+                <div class="control-group">
+                    <button id="primoSegnaleBtn" class="control-btn primary">📌 Primo Segnale</button>
+                    <span id="primoSegnaleLabel">Nessuno</span>
+                </div>
+                <div class="control-group">
+                    <button id="noteBtn" class="control-btn">📝 Nota</button>
+                </div>
             </div>
 
-            <div class="primo-segnale">
-                <span>📌 Primo segnale:</span>
-                <span id="primoSegnaleLabel">Nessuno</span>
-                <button id="resetPrimoBtn" title="Resetta">✕</button>
-            </div>
-
+            <!-- Filtri per canale -->
             <div class="channel-filters">
                 <button class="filter-btn active" data-filter="all">Tutti</button>
                 <button class="filter-btn" data-filter="NV">NV</button>
@@ -294,211 +63,100 @@
                 <button class="filter-btn" data-filter="V">V</button>
             </div>
 
-            <div id="segnaliContainer"></div>
+            <!-- Lista segnali -->
+            <div id="segnaliContainer" class="segnali-list">
+                <!-- I segnali vengono inseriti qui da JavaScript -->
+            </div>
+
+            <!-- Pulsante Analizza -->
+            <div class="analyze-container">
+                <button id="analyzeBtn" class="analyze-btn">ANALIZZA</button>
+            </div>
         </main>
 
-        <div class="analyze-container">
-            <button id="analyzeBtn" class="analyze-btn">ANALIZZA</button>
-        </div>
-
+        <!-- Pannello Risultati (inizialmente nascosto) -->
         <div id="resultsPanel" class="results-panel hidden">
             <div class="results-header">
-                <h2>Risultati</h2>
+                <h2>Risultati Analisi</h2>
                 <button id="closeResultsBtn" class="icon-btn">✕</button>
             </div>
+            
             <div class="results-content">
+                <!-- Pattern Principale -->
                 <div class="result-card pattern-card">
                     <div class="pattern-badge" id="patternBadge">Stress Cognitivo</div>
-                    <div class="pattern-score" id="patternScore">78%</div>
+                    <div class="pattern-score" id="patternScore">87%</div>
+                    <div class="pattern-cluster" id="patternCluster">Cluster A - Regolazione Emotiva</div>
                 </div>
+
+                <!-- Intensità -->
                 <div class="result-card">
                     <h3>Intensità</h3>
                     <div class="intensity-bar">
                         <div class="intensity-fill" id="intensityFill" style="width: 0%"></div>
                     </div>
-                    <div id="intensityLabel">-</div>
+                    <div class="intensity-label" id="intensityLabel">Forte (72%)</div>
                 </div>
+
+                <!-- Congruenza -->
+                <div class="result-card">
+                    <h3>Congruenza</h3>
+                    <div class="congruenza-grid">
+                        <div class="congruenza-item">
+                            <span class="label">NV</span>
+                            <span class="value" id="congNV">2.4</span>
+                        </div>
+                        <div class="congruenza-item">
+                            <span class="label">PV</span>
+                            <span class="value" id="congPV">1.8</span>
+                        </div>
+                        <div class="congruenza-item">
+                            <span class="label">V</span>
+                            <span class="value" id="congV">1.2</span>
+                        </div>
+                    </div>
+                    <p id="congruenzaDesc">Dissonanza emotiva</p>
+                </div>
+
+                <!-- Direzione e Predizione -->
                 <div class="result-card">
                     <h3>Direzione</h3>
                     <div class="direction-badge" id="directionBadge">↪️ Fuga</div>
-                    <div id="predictionText">Tendenza all'allontanamento</div>
+                    <p id="predictionText">Tendenza all'allontanamento dalla situazione</p>
+                    <div class="probability" id="probabilityBar">
+                        <div class="probability-fill" style="width: 75%"></div>
+                    </div>
                 </div>
+
+                <!-- Segnali Chiave -->
                 <div class="result-card">
-                    <h3>Dettagli</h3>
-                    <pre id="detailsJson" style="background: white; padding: 0.5rem; border-radius: 4px; overflow-x: auto;"></pre>
+                    <h3>Segnali Chiave</h3>
+                    <ul id="keySignalsList" class="key-signals">
+                        <!-- Inseriti da JS -->
+                    </ul>
+                </div>
+
+                <!-- Pulsanti azione -->
+                <div class="result-actions">
+                    <button id="exportResultBtn" class="action-btn">📤 Esporta</button>
+                    <button id="newAnalysisBtn" class="action-btn primary">Nuova Analisi</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Note -->
+        <div id="noteModal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Aggiungi Nota</h3>
+                <textarea id="noteText" rows="4" placeholder="Osservazioni..."></textarea>
+                <div class="modal-actions">
+                    <button id="saveNoteBtn" class="modal-btn primary">Salva</button>
+                    <button id="cancelNoteBtn" class="modal-btn">Annulla</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Stato dell'app
-        const state = {
-            segnali: [
-                { id: "S001", nome: "Respiro corto/toracico", canale: "NV", categoria: "respirazione" },
-                { id: "S002", nome: "Respiro profondo/addominale", canale: "NV", categoria: "respirazione" },
-                { id: "S003", nome: "Trattenere il respiro", canale: "NV", categoria: "respirazione" },
-                { id: "S004", nome: "Micro-tensioni mandibola", canale: "NV", categoria: "tensioni" },
-                { id: "S005", nome: "Micro-tensioni fronte", canale: "NV", categoria: "tensioni" },
-                { id: "S006", nome: "Piedi agitati/ballano", canale: "NV", categoria: "piedi" },
-                { id: "S007", nome: "Piedi orientati verso uscita", canale: "NV", categoria: "piedi" },
-                { id: "S008", nome: "Orientamento frontale", canale: "NV", categoria: "orientamento" },
-                { id: "S009", nome: "Orientamento laterale", canale: "NV", categoria: "orientamento" },
-                { id: "S010", nome: "Sguardo diretto/fisso", canale: "NV", categoria: "sguardo" },
-                { id: "S011", nome: "Sguardo evitante/mobile", canale: "NV", categoria: "sguardo" },
-                { id: "S012", nome: "Postura chiusa", canale: "NV", categoria: "postura" },
-                { id: "S013", nome: "Postura aperta", canale: "NV", categoria: "postura" },
-                { id: "S014", nome: "Automanipolazioni", canale: "NV", categoria: "mani" },
-                { id: "S015", nome: "Mani tese/contratte", canale: "NV", categoria: "mani" },
-                { id: "S016", nome: "Espressività ridotta", canale: "NV", categoria: "espressivita" },
-                { id: "S017", nome: "Espressività aumentata", canale: "NV", categoria: "espressivita" },
-                { id: "S018", nome: "Pause piene (ehm, mmh)", canale: "PV", categoria: "pause" },
-                { id: "S019", nome: "Pause vuote (silenzio)", canale: "PV", categoria: "pause" },
-                { id: "S020", nome: "Ritmo accelerato", canale: "PV", categoria: "ritmo" },
-                { id: "S021", nome: "Ritmo rallentato", canale: "PV", categoria: "ritmo" },
-                { id: "S022", nome: "Volume aumentato", canale: "PV", categoria: "volume" },
-                { id: "S023", nome: "Volume diminuito", canale: "PV", categoria: "volume" },
-                { id: "S024", nome: "Deglutizioni frequenti", canale: "PV", categoria: "altri_pv" },
-                { id: "S025", nome: "Coerenza narrativa alta", canale: "V", categoria: "narrativa" },
-                { id: "S026", nome: "Coerenza narrativa bassa", canale: "V", categoria: "narrativa" },
-                { id: "S027", nome: "Ambiguità lessicale", canale: "V", categoria: "lessico" },
-                { id: "S028", nome: "Lessico ricco/preciso", canale: "V", categoria: "lessico" },
-                { id: "S029", nome: "Tono congruente", canale: "V", categoria: "tono" },
-                { id: "S030", nome: "Tono incongruente", canale: "V", categoria: "tono" }
-            ],
-            osservazione: {},
-            primoSegnale: null,
-            sessionStart: Date.now(),
-            timerInterval: null
-        };
-
-        // Timer sessione
-        function updateTimer() {
-            const elapsed = Math.floor((Date.now() - state.sessionStart) / 1000);
-            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-            const seconds = (elapsed % 60).toString().padStart(2, '0');
-            document.getElementById('sessionTimer').textContent = `${minutes}:${seconds}`;
-        }
-        state.timerInterval = setInterval(updateTimer, 1000);
-
-        // Render segnali
-        function renderSegnali(filter = 'all') {
-            const container = document.getElementById('segnaliContainer');
-            container.innerHTML = '';
-
-            const filtrati = filter === 'all' ? state.segnali : state.segnali.filter(s => s.canale === filter);
-
-            filtrati.forEach(segnale => {
-                const valore = state.osservazione[segnale.id] || 0;
-                const div = document.createElement('div');
-                div.className = `segnale-item ${valore > 0 ? 'highlight' : ''}`;
-                div.innerHTML = `
-                    <div class="segnale-header">
-                        <span class="segnale-nome">${segnale.nome}</span>
-                        <span class="segnale-badge badge-${segnale.canale}">${segnale.canale}</span>
-                    </div>
-                    <div class="segnale-categoria">${segnale.categoria}</div>
-                    <div class="segnale-pesi">
-                        <button class="peso-btn" data-peso="0">0</button>
-                        <button class="peso-btn" data-peso="1">1</button>
-                        <button class="peso-btn" data-peso="2">2</button>
-                        <button class="peso-btn" data-peso="3">3</button>
-                    </div>
-                `;
-
-                const pesoBtns = div.querySelectorAll('.peso-btn');
-                pesoBtns[valore].classList.add('active');
-
-                pesoBtns.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const peso = parseInt(btn.dataset.peso);
-                        
-                        if (peso === 0) {
-                            delete state.osservazione[segnale.id];
-                        } else {
-                            state.osservazione[segnale.id] = peso;
-                            
-                            if (!state.primoSegnale) {
-                                state.primoSegnale = {
-                                    id: segnale.id,
-                                    nome: segnale.nome,
-                                    timestamp: Date.now()
-                                };
-                                document.getElementById('primoSegnaleLabel').textContent = segnale.nome;
-                            }
-                        }
-
-                        pesoBtns.forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                        div.classList.toggle('highlight', peso > 0);
-                    });
-                });
-
-                container.appendChild(div);
-            });
-        }
-
-        // Inizializzazione
-        document.addEventListener('DOMContentLoaded', () => {
-            renderSegnali();
-
-            // Filtri canale
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    renderSegnali(this.dataset.filter);
-                });
-            });
-
-            // Reset primo segnale
-            document.getElementById('resetPrimoBtn').addEventListener('click', () => {
-                state.primoSegnale = null;
-                document.getElementById('primoSegnaleLabel').textContent = 'Nessuno';
-            });
-
-            // Pulsante analizza
-            document.getElementById('analyzeBtn').addEventListener('click', () => {
-                const count = Object.keys(state.osservazione).length;
-                
-                if (count === 0) {
-                    alert('Nessun segnale selezionato');
-                    return;
-                }
-
-                // Simula analisi
-                const pattern = ['Stress Cognitivo', 'Ansia Sociale', 'Interesse Autentico', 'Cooperazione', 'Dominanza Naturale'][Math.floor(Math.random() * 5)];
-                const score = 60 + Math.floor(Math.random() * 30);
-                const intensita = 50 + Math.floor(Math.random() * 40);
-                const direzioni = ['Approccio', 'Fuga', 'Controllo', 'Apertura'];
-                const direzione = direzioni[Math.floor(Math.random() * direzioni.length)];
-
-                document.getElementById('patternBadge').textContent = pattern;
-                document.getElementById('patternScore').textContent = score + '%';
-                document.getElementById('intensityFill').style.width = intensita + '%';
-                document.getElementById('intensityLabel').textContent = `Intensità: ${intensita}%`;
-                document.getElementById('directionBadge').textContent = `↪️ ${direzione}`;
-                document.getElementById('predictionText').textContent = `Predizione: ${direzione} con probabilità ${(70 + Math.floor(Math.random()*20))}%`;
-                document.getElementById('detailsJson').textContent = JSON.stringify({
-                    segnali: count,
-                    primo: state.primoSegnale?.nome || 'nessuno',
-                    contesto: document.getElementById('contextSelect').value
-                }, null, 2);
-
-                document.getElementById('resultsPanel').classList.remove('hidden');
-            });
-
-            // Chiudi risultati
-            document.getElementById('closeResultsBtn').addEventListener('click', () => {
-                document.getElementById('resultsPanel').classList.add('hidden');
-            });
-
-            // Contesto
-            document.getElementById('contextSelect').addEventListener('change', (e) => {
-                console.log('Contesto:', e.target.value);
-            });
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
