@@ -89,6 +89,10 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+        .segnale-item.selected {
+            border-left: 4px solid #3498db;
+            background: #f8f9fa;
+        }
         .segnale-header {
             display: flex;
             justify-content: space-between;
@@ -142,6 +146,29 @@
             background: white;
             border-radius: 5px;
         }
+        .congruenza-box {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        .canale-box {
+            text-align: center;
+            flex: 1;
+        }
+        .canale-valore {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .canale-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        .NV { color: #1976d2; }
+        .PV { color: #f57c00; }
+        .V { color: #388e3c; }
         .modal {
             display: none;
             position: fixed;
@@ -227,9 +254,27 @@
         
         <div id="results" class="results hidden">
             <h3>Risultati Analisi</h3>
+            
+            <!-- Raffronto NV-PV-V -->
+            <div class="congruenza-box">
+                <div class="canale-box">
+                    <div class="canale-valore NV" id="valoreNV">0</div>
+                    <div class="canale-label">NV</div>
+                </div>
+                <div class="canale-box">
+                    <div class="canale-valore PV" id="valorePV">0</div>
+                    <div class="canale-label">PV</div>
+                </div>
+                <div class="canale-box">
+                    <div class="canale-valore V" id="valoreV">0</div>
+                    <div class="canale-label">V</div>
+                </div>
+            </div>
+            
             <div class="result-item" id="patternResult"></div>
             <div class="result-item" id="intensityResult"></div>
             <div class="result-item" id="directionResult"></div>
+            <div class="result-item" id="congruenzaResult"></div>
             <div class="result-item" id="detailsResult"></div>
         </div>
     </div>
@@ -282,7 +327,7 @@
         ];
 
         // STATO APPLICAZIONE
-        let osservazione = {};
+        let osservazione = {};  // Contiene TUTTI i segnali con peso > 0
         let primoSegnale = null;
         let note = [];
         let contesto = 'negoziale';
@@ -301,7 +346,13 @@
         const patternResult = document.getElementById('patternResult');
         const intensityResult = document.getElementById('intensityResult');
         const directionResult = document.getElementById('directionResult');
+        const congruenzaResult = document.getElementById('congruenzaResult');
         const detailsResult = document.getElementById('detailsResult');
+        
+        // Elementi per il raffronto NV-PV-V
+        const valoreNV = document.getElementById('valoreNV');
+        const valorePV = document.getElementById('valorePV');
+        const valoreV = document.getElementById('valoreV');
         
         // Note
         const noteBtn = document.getElementById('noteBtn');
@@ -328,7 +379,7 @@
             filtrati.forEach(segnale => {
                 const valore = osservazione[segnale.id] || 0;
                 const div = document.createElement('div');
-                div.className = 'segnale-item';
+                div.className = `segnale-item ${valore > 0 ? 'selected' : ''}`;
                 
                 let pesiHtml = '';
                 for (let i = 0; i <= 3; i++) {
@@ -355,12 +406,14 @@
                     const id = this.dataset.id;
                     const peso = parseInt(this.dataset.peso);
                     
+                    // Aggiorna stato - INCLUDIAMO ANCHE LO 0
                     if (peso === 0) {
                         delete osservazione[id];
                     } else {
                         osservazione[id] = peso;
                         
-                        if (!primoSegnale) {
+                        // Registra primo segnale se è il primo
+                        if (!primoSegnale && Object.keys(osservazione).length === 1) {
                             const segnale = SEGNALI.find(s => s.id === id);
                             primoSegnale = segnale.nome;
                             primoSegnaleLabel.textContent = segnale.nome;
@@ -375,9 +428,73 @@
                         }
                     });
                     
+                    // Aggiorna classe selected sul segnale
+                    const segnaleDiv = this.closest('.segnale-item');
+                    if (segnaleDiv) {
+                        if (peso > 0) {
+                            segnaleDiv.classList.add('selected');
+                        } else {
+                            // Controlla se ci sono altri pesi > 0 per questo segnale
+                            const altriPesi = Array.from(segnaleDiv.querySelectorAll('.peso-btn.active[data-peso="1"], .peso-btn.active[data-peso="2"], .peso-btn.active[data-peso="3"]'));
+                            if (altriPesi.length === 0) {
+                                segnaleDiv.classList.remove('selected');
+                            }
+                        }
+                    }
+                    
                     console.log('Osservazione:', osservazione);
                 });
             });
+        }
+
+        function calcolaMedieCanali() {
+            let sommaNV = 0, sommaPV = 0, sommaV = 0;
+            let countNV = 0, countPV = 0, countV = 0;
+            
+            Object.entries(osservazione).forEach(([id, valore]) => {
+                const segnale = SEGNALI.find(s => s.id === id);
+                if (segnale) {
+                    if (segnale.canale === 'NV') {
+                        sommaNV += valore;
+                        countNV++;
+                    } else if (segnale.canale === 'PV') {
+                        sommaPV += valore;
+                        countPV++;
+                    } else if (segnale.canale === 'V') {
+                        sommaV += valore;
+                        countV++;
+                    }
+                }
+            });
+            
+            const mediaNV = countNV > 0 ? (sommaNV / countNV).toFixed(1) : '0';
+            const mediaPV = countPV > 0 ? (sommaPV / countPV).toFixed(1) : '0';
+            const mediaV = countV > 0 ? (sommaV / countV).toFixed(1) : '0';
+            
+            return { mediaNV, mediaPV, mediaV, countNV, countPV, countV };
+        }
+
+        function determinaCongruenza(mediaNV, mediaPV, mediaV) {
+            const nv = parseFloat(mediaNV);
+            const pv = parseFloat(mediaPV);
+            const v = parseFloat(mediaV);
+            
+            // Regola NV > PV > V
+            const regolaRispettata = nv >= pv && pv >= v;
+            
+            if (nv === pv && nv === v) {
+                return { tipo: 'Piena congruenza', desc: 'Tutti i canali allineati' };
+            } else if (nv === pv && nv !== v) {
+                return { tipo: 'Dissonanza emotiva', desc: 'NV e PV allineati, V discordante' };
+            } else if (pv === v && nv !== pv) {
+                return { tipo: 'Controllo verbale', desc: 'PV e V allineati, NV discordante' };
+            } else if (nv > pv && pv > v) {
+                return { tipo: 'Autentico', desc: 'NV > PV > V - Pattern autentico' };
+            } else if (nv < pv && pv < v) {
+                return { tipo: 'Invertito', desc: 'Attenzione: pattern invertito' };
+            } else {
+                return { tipo: 'Misto', desc: 'Pattern non chiaramente definito' };
+            }
         }
 
         function analizza() {
@@ -388,35 +505,47 @@
                 return;
             }
             
-            // Calcola pattern in base ai segnali
+            // Calcola medie per canale
+            const { mediaNV, mediaPV, mediaV, countNV, countPV, countV } = calcolaMedieCanali();
+            
+            // Aggiorna raffronto NV-PV-V
+            valoreNV.textContent = mediaNV;
+            valorePV.textContent = mediaPV;
+            valoreV.textContent = mediaV;
+            
+            // Determina pattern in base ai segnali
             let pattern = 'Cooperazione';
             let score = 65;
             let direzione = 'apertura';
             
-            if (osservazione['S001'] || osservazione['S004'] || osservazione['S018']) {
+            if (osservazione['S001'] >= 2 || osservazione['S004'] >= 2 || osservazione['S018'] >= 2) {
                 pattern = 'Stress Cognitivo';
                 direzione = 'fuga';
-            } else if (osservazione['S007'] || osservazione['S011'] || osservazione['S012']) {
+            } else if (osservazione['S007'] >= 2 || osservazione['S011'] >= 2 || osservazione['S012'] >= 2) {
                 pattern = 'Ansia Sociale';
                 direzione = 'fuga';
-            } else if (osservazione['S008'] || osservazione['S010'] || osservazione['S013']) {
+            } else if (osservazione['S008'] >= 2 || osservazione['S010'] >= 2 || osservazione['S013'] >= 2) {
                 pattern = 'Interesse Autentico';
                 direzione = 'apertura';
-            } else if (osservazione['S002'] || osservazione['S022']) {
+            } else if (osservazione['S002'] >= 2 || osservazione['S022'] >= 2) {
                 pattern = 'Dominanza Naturale';
                 direzione = 'controllo';
             }
             
             // Calcola intensità
             const valori = Object.values(osservazione);
-            const media = valori.reduce((a, b) => a + b, 0) / valori.length;
-            const intensita = Math.round((media / 3) * 100);
+            const mediaTotale = valori.reduce((a, b) => a + b, 0) / valori.length;
+            const intensita = Math.round((mediaTotale / 3) * 100);
+            
+            // Determina congruenza
+            const congruenza = determinaCongruenza(mediaNV, mediaPV, mediaV);
             
             // Mostra risultati
             patternResult.innerHTML = `<strong>Pattern:</strong> ${pattern} (${score}%)`;
-            intensityResult.innerHTML = `<strong>Intensità:</strong> ${intensita}%`;
+            intensityResult.innerHTML = `<strong>Intensità:</strong> ${intensita}% (su ${count} segnali)`;
             directionResult.innerHTML = `<strong>Direzione:</strong> ${direzione}`;
-            detailsResult.innerHTML = `<strong>Segnali:</strong> ${count} osservati`;
+            congruenzaResult.innerHTML = `<strong>Congruenza:</strong> ${congruenza.tipo} - ${congruenza.desc}`;
+            detailsResult.innerHTML = `<strong>Segnali per canale:</strong> NV:${countNV}, PV:${countPV}, V:${countV}`;
             
             resultsDiv.classList.remove('hidden');
         }
