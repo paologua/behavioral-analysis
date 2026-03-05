@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Behavioral Analysis - Profilo Identità</title>
+    <title>Behavioral Analysis - GitHub</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -276,15 +276,13 @@
         <!-- Pattern principale -->
         <div id="res" style="font-size: 1rem; margin: 15px 0; padding: 10px; background: #1e1e1e; border-radius: 6px;"></div>
         
-        <!-- PROFILO IDENTITÀ (7 dimensioni) -->
+        <!-- PROFILO IDENTITÀ -->
         <div class="identita-container">
             <div class="identita-header">
                 <span class="identita-titolo">🧠 PROFILO IDENTITÀ</span>
                 <span class="identita-dominante" id="identita-dominante">-</span>
             </div>
-            <div class="identita-grid" id="identita-grid">
-                <!-- Generato da JavaScript -->
-            </div>
+            <div class="identita-grid" id="identita-grid"></div>
         </div>
         
         <div id="adv" style="color:#ffc107; font-size:0.85rem; margin-top:8px; border-left:2px solid #ffc107; padding-left:8px;"></div>
@@ -304,7 +302,7 @@
     <button id="resetBtn">🔄 RESET COMPLETO</button>
 
     <script>
-        // ==================== DATI COMPLETI ====================
+        // ==================== DATI INLINE (NESSUN FILE ESTERNO) ====================
         const SEGNALI = [
             { id: "S001", nome: "Apnea/Respirazione superficiale", peso: 1.0, zona: "NV" },
             { id: "S002", nome: "Respirazione profonda/Rilassata", peso: 1.0, zona: "NV" },
