@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pattern Observer - 50 Segnali / 50 Pattern</title>
+    <title>Pattern Observer - 50/50</title>
+    <link rel="stylesheet" href="style.css">
     <style>
+        /* Stili di fallback nel caso style.css non carichi */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -221,6 +223,11 @@
             color: #00ff9d;
             margin-bottom: 5px;
         }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -230,16 +237,18 @@
         <span class="badge-50">50 Pattern</span>
     </h2>
     
-    <div class="pattern-counter" id="pattern-counter">📚 50 Pattern comportamentali caricati</div>
+    <div class="pattern-counter" id="pattern-counter">📚 Caricamento pattern...</div>
     
-    <select id="ctx" onchange="update()">
+    <select id="ctx">
         <option value="FORMALE">👔 FORMALE (Focus C/D)</option>
         <option value="NEGOZIALE" selected>🤝 NEGOZIALE (Focus A/D/E)</option>
         <option value="CONFLITTUALE">🔥 CONFLITTUALE (Focus A/C/E)</option>
         <option value="INFORMALE">☕ INFORMALE (Focus B/E)</option>
     </select>
 
-    <div id="btn-container" class="grid"></div>
+    <div id="btn-container" class="grid">
+        <div class="loading">Caricamento segnali...</div>
+    </div>
 
     <div class="panel">
         <div id="alert-box" class="alert">⚠️ INCONGRUENZA RILEVATA (Canali non allineati)</div>
@@ -312,388 +321,28 @@
         <div id="log"></div>
     </div>
 
-    <button class="reset-btn" onclick="reset()">🔄 RESET COMPLETO</button>
+    <button class="reset-btn" id="resetBtn">🔄 RESET COMPLETO</button>
 
-    <script>
-        // ==================== SEGNALI MASTER (50) ====================
-        const SEGNALI_MASTER = {
-            // AUTONOMI (Peso 1.0)
-            S001: { nome: "Apnea/Respirazione superficiale", peso: 1.0, zona: "NV" },
-            S002: { nome: "Respirazione profonda/Rilassata", peso: 1.0, zona: "NV" },
-            S003: { nome: "Aumento ammiccamento (Blinking)", peso: 0.8, zona: "NV" },
-            S004: { nome: "Micro-tensioni facciali", peso: 0.9, zona: "NV" },
-            S005: { nome: "Sudorazione/Rossore", peso: 0.9, zona: "NV" },
-            
-            // BASSO CORPO
-            S006: { nome: "Piedi verso interlocutore", peso: 0.7, zona: "NV" },
-            S007: { nome: "Piedi verso uscita", peso: 0.8, zona: "NV" },
-            S008: { nome: "Solidità plantare", peso: 0.6, zona: "NV" },
-            S009: { nome: "Gambe incrociate (Sbilanciamento)", peso: 0.7, zona: "NV" },
-            S010: { nome: "Movimenti ritmici (Kick)", peso: 0.6, zona: "NV" },
-            
-            // VISO
-            S011: { nome: "Contatto visivo prolungato", peso: 0.5, zona: "NV" },
-            S012: { nome: "Eye-blocking", peso: 0.6, zona: "NV" },
-            S013: { nome: "Compressione labiale", peso: 0.8, zona: "NV" },
-            S014: { nome: "Asimmetria (Disprezzo)", peso: 0.7, zona: "NV" },
-            S015: { nome: "Dilatazione narici", peso: 0.8, zona: "NV" },
-            
-            // TRONCO
-            S016: { nome: "Braccia incrociate serrate", peso: 0.6, zona: "NV" },
-            S017: { nome: "Ventral Denial (Busto ruotato)", peso: 0.8, zona: "NV" },
-            S018: { nome: "Innalzamento spalle", peso: 0.7, zona: "NV" },
-            S019: { nome: "Espansione toracica", peso: 0.7, zona: "NV" },
-            S020: { nome: "Inclinazione avanti", peso: 0.6, zona: "NV" },
-            
-            // MANI
-            S021: { nome: "Self-soothing (Collo/Viso)", peso: 0.6, zona: "NV" },
-            S022: { nome: "Mani nascoste", peso: 0.6, zona: "NV" },
-            S023: { nome: "Manipolazione oggetti", peso: 0.5, zona: "NV" },
-            S024: { nome: "Palmi visibili", peso: 0.6, zona: "NV" },
-            S025: { nome: "Gesti illustratori", peso: 0.5, zona: "NV" },
-            
-            // PARA-VERBALI (PV)
-            S026: { nome: "Latenza risposta", peso: 0.5, zona: "PV" },
-            S027: { nome: "Tono alterato", peso: 0.4, zona: "PV" },
-            S028: { nome: "Interruzioni", peso: 0.4, zona: "PV" },
-            S029: { nome: "Volume crescente (escalation)", peso: 0.5, zona: "PV" },
-            S030: { nome: "Volume calante (sottomissione)", peso: 0.5, zona: "PV" },
-            S031: { nome: "Tono monotono (noia/controllo)", peso: 0.4, zona: "PV" },
-            S032: { nome: "Tono variabile (espressività)", peso: 0.4, zona: "PV" },
-            S033: { nome: "Velocità crescente (ansia/eccitazione)", peso: 0.6, zona: "PV" },
-            S034: { nome: "Velocità calante (riflessione)", peso: 0.5, zona: "PV" },
-            S035: { nome: "Ritmo irregolare (disagio)", peso: 0.6, zona: "PV" },
-            S036: { nome: "Ritmo sincopato (aggressività)", peso: 0.5, zona: "PV" },
-            S037: { nome: "Prolungamento vocali (esitazione)", peso: 0.4, zona: "PV" },
-            S038: { nome: "Frase interrotta a metà", peso: 0.6, zona: "PV" },
-            
-            // VERBALI (V)
-            S039: { nome: "Linguaggio distanziante", peso: 0.3, zona: "V" },
-            S040: { nome: "Ambiguità verbale", peso: 0.3, zona: "V" },
-            S041: { nome: "Risposte brevi/monosillabiche", peso: 0.5, zona: "V" },
-            S042: { nome: "Risposte eccessivamente lunghe", peso: 0.4, zona: "V" },
-            S043: { nome: "Cambio improvviso di argomento", peso: 0.6, zona: "V" },
-            S044: { nome: "Generalizzazioni (sempre/mai)", peso: 0.5, zona: "V" },
-            S045: { nome: "Parole emotive positive", peso: 0.5, zona: "V" },
-            S046: { nome: "Parole emotive negative", peso: 0.5, zona: "V" },
-            S047: { nome: "Linguaggio metaforico", peso: 0.4, zona: "V" },
-            S048: { nome: "Ripetizioni/insistenze", peso: 0.5, zona: "V" },
-            S049: { nome: "Uso del 'noi' inclusivo", peso: 0.6, zona: "V" },
-            S050: { nome: "Distanziamento (si/loro vs io)", peso: 0.6, zona: "V" }
-        };
-
-        // ==================== CONTESTI ====================
-        const CONTESTI = {
-            FORMALE: { moltiplicatore: 1.2, focus: ["C", "D"] },
-            INFORMALE: { moltiplicatore: 0.8, focus: ["B", "E"] },
-            NEGOZIALE: { moltiplicatore: 1.5, focus: ["A", "D", "E"] },
-            CONFLITTUALE: { moltiplicatore: 1.3, focus: ["A", "C", "E"] }
-        };
-
-        // ==================== 50 PATTERN COMPLETI ====================
-        const PATTERN_LIBRARY = [
-            // === CLUSTER A - REGOLAZIONE EMOTIVA (10) ===
-            { nome: "Stress Acuto", cluster: "A", segnali: ["S001", "S004", "S021", "S033"], direzione: "fuga" },
-            { nome: "Negazione", cluster: "A", segnali: ["S012", "S017", "S026", "S040"], direzione: "fuga" },
-            { nome: "Ansia Sociale", cluster: "A", segnali: ["S003", "S009", "S021", "S037", "S041"], direzione: "fuga" },
-            { nome: "Over-control", cluster: "A", segnali: ["S001", "S013", "S016", "S031", "S034"], direzione: "controllo" },
-            { nome: "Rabbia Repressa", cluster: "A", segnali: ["S013", "S029", "S036", "S046", "S048"], direzione: "controllo" },
-            { nome: "Fragilità Emotiva", cluster: "A", segnali: ["S003", "S005", "S021", "S037"], direzione: "fuga" },
-            { nome: "Resilienza", cluster: "A", segnali: ["S002", "S008", "S024", "S032", "S045"], direzione: "apertura" },
-            { nome: "Panico", cluster: "A", segnali: ["S001", "S003", "S005", "S033", "S038"], direzione: "fuga" },
-            { nome: "Vergogna", cluster: "A", segnali: ["S009", "S012", "S022", "S030", "S041"], direzione: "fuga" },
-            { nome: "Disgusto", cluster: "A", segnali: ["S014", "S015", "S017", "S046"], direzione: "fuga" },
-
-            // === CLUSTER B - INTENZIONE RELAZIONALE (10) ===
-            { nome: "Interesse Autentico", cluster: "B", segnali: ["S002", "S006", "S020", "S024", "S045"], direzione: "apertura" },
-            { nome: "Dipendenza Emotiva", cluster: "B", segnali: ["S011", "S012", "S023", "S029", "S049"], direzione: "dipendenza" },
-            { nome: "Seduzione", cluster: "B", segnali: ["S011", "S020", "S024", "S032", "S047"], direzione: "approccio" },
-            { nome: "Micro-ritiro", cluster: "B", segnali: ["S007", "S009", "S017", "S034", "S039"], direzione: "fuga" },
-            { nome: "Distanziamento Emotivo", cluster: "B", segnali: ["S009", "S031", "S041", "S050", "S039"], direzione: "fuga" },
-            { nome: "Attaccamento Ansioso", cluster: "B", segnali: ["S003", "S011", "S021", "S026", "S049"], direzione: "dipendenza" },
-            { nome: "Attaccamento Evitante", cluster: "B", segnali: ["S007", "S009", "S022", "S034", "S050"], direzione: "fuga" },
-            { nome: "Attaccamento Sicuro", cluster: "B", segnali: ["S002", "S006", "S008", "S024", "S045"], direzione: "apertura" },
-            { nome: "Empatia", cluster: "B", segnali: ["S011", "S020", "S024", "S032", "S049"], direzione: "apertura" },
-            { nome: "Freddezza", cluster: "B", segnali: ["S009", "S016", "S031", "S039", "S050"], direzione: "fuga" },
-
-            // === CLUSTER C - GESTIONE DEL POTERE (10) ===
-            { nome: "Dominanza Naturale", cluster: "C", segnali: ["S002", "S008", "S019", "S024", "S032"], direzione: "controllo" },
-            { nome: "Dominanza Aggressiva", cluster: "C", segnali: ["S004", "S013", "S015", "S028", "S036"], direzione: "controllo" },
-            { nome: "Leadership Naturale", cluster: "C", segnali: ["S002", "S008", "S019", "S024", "S045"], direzione: "controllo" },
-            { nome: "Sottomissione", cluster: "C", segnali: ["S009", "S016", "S022", "S030", "S041"], direzione: "sottomissione" },
-            { nome: "Intimidazione", cluster: "C", segnali: ["S004", "S015", "S019", "S029", "S036"], direzione: "controllo" },
-            { nome: "Autoritarismo", cluster: "C", segnali: ["S013", "S015", "S028", "S029", "S043"], direzione: "controllo" },
-            { nome: "Carisma", cluster: "C", segnali: ["S002", "S008", "S019", "S024", "S032"], direzione: "approccio" },
-            { nome: "Sfida", cluster: "C", segnali: ["S004", "S010", "S013", "S028", "S036"], direzione: "controllo" },
-            { nome: "Deferenza", cluster: "C", segnali: ["S009", "S011", "S022", "S030", "S034"], direzione: "sottomissione" },
-            { nome: "Competizione", cluster: "C", segnali: ["S004", "S010", "S019", "S028", "S043"], direzione: "controllo" },
-
-            // === CLUSTER D - INGANNO E MANIPOLAZIONE (10) ===
-            { nome: "Inganno Strutturato", cluster: "D", segnali: ["S001", "S011", "S029", "S040", "S043"], direzione: "controllo" },
-            { nome: "Autosabotaggio", cluster: "D", segnali: ["S004", "S014", "S021", "S027", "S048"], direzione: "fuga" },
-            { nome: "Manipolazione Soft", cluster: "D", segnali: ["S011", "S024", "S029", "S047", "S049"], direzione: "controllo" },
-            { nome: "Confusione Strategica", cluster: "D", segnali: ["S035", "S038", "S040", "S043", "S047"], direzione: "controllo" },
-            { nome: "Gaslighting", cluster: "D", segnali: ["S014", "S040", "S043", "S046", "S048"], direzione: "controllo" },
-            { nome: "Narcisismo", cluster: "D", segnali: ["S011", "S019", "S024", "S029", "S046"], direzione: "controllo" },
-            { nome: "Vittimismo", cluster: "D", segnali: ["S005", "S009", "S021", "S041", "S046"], direzione: "vittima" },
-            { nome: "Doppiezza", cluster: "D", segnali: ["S011", "S016", "S029", "S040", "S047"], direzione: "controllo" },
-            { nome: "Sfruttamento", cluster: "D", segnali: ["S004", "S010", "S019", "S028", "S043"], direzione: "controllo" },
-            { nome: "Dissimulazione", cluster: "D", segnali: ["S001", "S016", "S031", "S039", "S040"], direzione: "controllo" },
-
-            // === CLUSTER E - COOPERAZIONE E CONFLITTO (10) ===
-            { nome: "Cooperazione", cluster: "E", segnali: ["S006", "S008", "S020", "S024", "S049"], direzione: "apertura" },
-            { nome: "Resistenza Passiva", cluster: "E", segnali: ["S009", "S016", "S017", "S021", "S041"], direzione: "fuga" },
-            { nome: "Resistenza Attiva", cluster: "E", segnali: ["S004", "S015", "S019", "S028", "S043"], direzione: "controllo" },
-            { nome: "Coping Attivo", cluster: "E", segnali: ["S002", "S008", "S013", "S020", "S045"], direzione: "approccio" },
-            { nome: "Mediazione", cluster: "E", segnali: ["S002", "S006", "S008", "S020", "S049"], direzione: "apertura" },
-            { nome: "Aggressività Passiva", cluster: "E", segnali: ["S009", "S016", "S021", "S027", "S048"], direzione: "indiretto" },
-            { nome: "Conflitto Aperto", cluster: "E", segnali: ["S004", "S013", "S028", "S036", "S043"], direzione: "conflitto" },
-            { nome: "Pacifismo", cluster: "E", segnali: ["S002", "S006", "S008", "S024", "S045"], direzione: "apertura" },
-            { nome: "Ostilità", cluster: "E", segnali: ["S004", "S013", "S015", "S028", "S046"], direzione: "conflitto" },
-            { nome: "Resistenza Verbale", cluster: "E", segnali: ["S028", "S041", "S042", "S043", "S048"], direzione: "fuga" }
-        ];
-
-        console.log(`✅ Caricati ${PATTERN_LIBRARY.length} pattern comportamentali`);
-
-        // ==================== STATO ====================
-        let selected = new Set();
-        let sessionLog = [];
-
-        // ==================== ANALISI IDENTITÀ ====================
-        function analizzaIdentita() {
-            const pesi = {
-                competenza: { S024: 2, S025: 2, S008: 1, S020: 1, S045: 1 },
-                intelligenza: { S025: 2, S033: 1.5, S005: 1, S045: 1.5, S047: 1 },
-                status: { S008: 2, S019: 1.5, S029: 1.5, S024: 1, S013: 1 },
-                indipendenza: { S007: 2, S009: 2, S034: 1.5, S050: 1.5, S039: 1 },
-                moralita: { S045: 2.5, S049: 2, S040: -1.5, S046: -1.5, S029: -1 },
-                superiorita: { S029: 2, S019: 2, S013: 1.5, S001: -1, S004: -1 },
-                sicurezza: { S002: 2, S008: 2, S024: 1.5, S045: 1.5, S019: 1 }
-            };
-            
-            let punteggi = {};
-            Object.keys(pesi).forEach(tratto => {
-                let totale = 0, massimo = 0;
-                Object.entries(pesi[tratto]).forEach(([segnale, peso]) => {
-                    const valore = selected.has(segnale) ? (SEGNALI_MASTER[segnale]?.peso || 1) : 0;
-                    if (peso > 0) { totale += valore * peso; massimo += 4 * peso; }
-                    else { totale -= valore * Math.abs(peso); massimo += 4 * Math.abs(peso); }
-                });
-                punteggi[tratto] = massimo > 0 ? Math.min(100, Math.max(0, Math.round((totale / massimo) * 100))) : 0;
-            });
-            return punteggi;
-        }
-
-        function getIdentitaDominante(punteggi) {
-            let max = 0, dominante = 'neutro';
-            Object.entries(punteggi).forEach(([tratto, val]) => { if (val > max) { max = val; dominante = tratto; } });
-            let livello = 'basso';
-            if (max >= 70) livello = 'alto';
-            else if (max >= 40) livello = 'medio';
-            return { dominante, livello, punteggio: max };
-        }
-
-        // ==================== FUNZIONE ANALISI ====================
-        function calcolaAnalisiCompleta(segnaliUtente, contestoKey = "NEGOZIALE") {
-            let risultati = [];
-            let vettori = { apertura: 0, fuga: 0, controllo: 0, approccio: 0, dipendenza: 0, sottomissione: 0, vittima: 0, conflitto: 0, indiretto: 0 };
-            let canali = { NV: 0, PV: 0, V: 0 };
-            let conteggi = { NV: 0, PV: 0, V: 0 };
-            
-            const ctx = CONTESTI[contestoKey] || CONTESTI.NEGOZIALE;
-
-            // Calcolo canali
-            segnaliUtente.forEach(sID => {
-                const s = SEGNALI_MASTER[sID];
-                if (!s) return;
-                if (s.zona === "NV") { canali.NV += s.peso; conteggi.NV++; }
-                else if (s.zona === "PV") { canali.PV += s.peso; conteggi.PV++; }
-                else if (s.zona === "V") { canali.V += s.peso; conteggi.V++; }
-            });
-
-            // Calcolo pattern
-            PATTERN_LIBRARY.forEach(pattern => {
-                let score = 0;
-                let max = 0;
-                pattern.segnali.forEach(sID => {
-                    const segnale = SEGNALI_MASTER[sID];
-                    if (!segnale) return;
-                    const peso = segnale.peso;
-                    max += peso;
-                    if (segnaliUtente.includes(sID)) score += peso;
-                });
-
-                let prob = max > 0 ? (score / max) * 100 : 0;
-                
-                if (ctx.focus.includes(pattern.cluster)) {
-                    prob *= ctx.moltiplicatore;
-                }
-
-                if (prob > 15) {
-                    risultati.push({ 
-                        nome: pattern.nome, 
-                        prob: Math.min(Math.round(prob), 100), 
-                        direzione: pattern.direzione 
-                    });
-                    if (vettori[pattern.direzione] !== undefined) {
-                        vettori[pattern.direzione] += prob;
-                    }
-                }
-            });
-
-            risultati.sort((a, b) => b.prob - a.prob);
-            
-            let direzione = 'neutrale';
-            let maxVettore = 0;
-            Object.entries(vettori).forEach(([dir, val]) => {
-                if (val > maxVettore) { maxVettore = val; direzione = dir; }
-            });
-            
-            const totaleSegnali = segnaliUtente.length;
-            const intensitaRaw = Math.min(100, totaleSegnali * 2 + (canali.NV + canali.PV + canali.V) * 2);
-            const intensita = intensitaRaw > 70 ? "FORTE" : intensitaRaw > 40 ? "MODERATA" : "LEGGERA";
-            
-            const incongruenza = Math.abs(canali.NV - canali.PV) > 1.5 || Math.abs(canali.NV - canali.V) > 1.5;
-
-            return {
-                top: risultati.slice(0, 3),
-                tutti: risultati,
-                direzione: direzione,
-                intensita: intensita,
-                intensitaRaw: Math.round(intensitaRaw),
-                canali: canali,
-                conteggi: conteggi,
-                incongruenza: incongruenza,
-                totaleSegnali: totaleSegnali,
-                patternCount: risultati.length
-            };
-        }
-
-        function generaSuggerimento(direzione) {
-            const suggerimenti = {
-                apertura: "La persona è recettiva e collaborativa. Incoraggia lo scambio.",
-                fuga: "Possibile disagio o chiusura. Rallenta, crea spazio e rassicura.",
-                controllo: "Tentativo di dominare la situazione. Mantieni la calma e non opporti direttamente.",
-                approccio: "Interesse crescente. Approfondisci senza forzare.",
-                dipendenza: "Ricerca di approvazione. Fornisci rinforzi positivi.",
-                sottomissione: "Atteggiamento remissivo. Incoraggia l'espressione.",
-                vittima: "Posizione di vittima. Evita di alimentare il ruolo.",
-                conflitto: "Tensione evidente. De-escala e mantieni la calma.",
-                indiretto: "Comunicazione indiretta. Chiarisci e chiedi esplicitamente.",
-                neutrale: "Baseline stabile. Continua osservazione."
-            };
-            return suggerimenti[direzione] || "Continua osservazione...";
-        }
-
-        // ==================== UI RENDERING ====================
-        function render() {
-            const cont = document.getElementById('btn-container');
-            cont.innerHTML = '';
-            
-            Object.keys(SEGNALI_MASTER).forEach(id => {
-                const s = SEGNALI_MASTER[id];
-                const b = document.createElement('button');
-                b.className = `btn ${s.zona} ${selected.has(id) ? 'active' : ''}`;
-                b.innerText = `${id}: ${s.nome.substring(0, 20)}`;
-                b.onclick = () => { 
-                    selected.has(id) ? selected.delete(id) : selected.add(id); 
-                    render(); 
-                    update(); 
-                };
-                cont.appendChild(b);
-            });
-            
-            document.getElementById('pattern-counter').innerHTML = `📚 ${PATTERN_LIBRARY.length} Pattern comportamentali caricati`;
-        }
-
-        function update() {
-            const data = calcolaAnalisiCompleta(Array.from(selected), document.getElementById('ctx').value);
-            const identita = analizzaIdentita();
-            const dominante = getIdentitaDominante(identita);
-            
-            // Valori canali
-            document.getElementById('valoreNV').innerText = data.canali.NV.toFixed(1);
-            document.getElementById('valorePV').innerText = data.canali.PV.toFixed(1);
-            document.getElementById('valoreV').innerText = data.canali.V.toFixed(1);
-            
-            // Barre
-            document.getElementById('bar-nv').style.width = Math.min(100, data.canali.NV * 8) + '%';
-            document.getElementById('bar-pv').style.width = Math.min(100, data.canali.PV * 8) + '%';
-            document.getElementById('bar-v').style.width = Math.min(100, data.canali.V * 8) + '%';
-            
-            document.getElementById('nv-detail').innerText = `${data.conteggi.NV}/25`;
-            document.getElementById('pv-detail').innerText = `${data.conteggi.PV}/13`;
-            document.getElementById('v-detail').innerText = `${data.conteggi.V}/12`;
-            
-            document.getElementById('alert-box').style.display = data.incongruenza ? 'block' : 'none';
-            document.getElementById('active-count').innerText = data.totaleSegnali;
-            document.getElementById('intensity-level').innerText = data.intensitaRaw + '%';
-            document.getElementById('pattern-count').innerText = data.patternCount;
-
-            // Pattern principale
-            const out = document.getElementById('res');
-            if(data.top.length > 0) {
-                out.innerHTML = `
-                    <strong style="font-size:1.2rem;">${data.top[0].nome}</strong> 
-                    <span class="direzione-badge ${data.direzione}">${data.top[0].prob}%</span>
-                    <div style="margin-top:8px;">📊 Intensità: <strong>${data.intensita}</strong> (${data.intensitaRaw}%) | Direzione: <strong>${data.direzione.toUpperCase()}</strong></div>
-                `;
-                document.getElementById('adv').innerHTML = `💡 ${generaSuggerimento(data.direzione)}`;
-                
-                // Pattern secondari
-                let secHtml = '';
-                for (let i = 1; i < Math.min(4, data.top.length); i++) {
-                    secHtml += `<div style="margin:5px 0;">• ${data.top[i].nome} <span style="color:#666;">(${data.top[i].prob}%)</span></div>`;
-                }
-                document.getElementById('secondary-patterns').innerHTML = secHtml || '<div style="color:#666;">Nessuno</div>';
-                
-                // Log
-                let entry = `${new Date().toLocaleTimeString()} - ${data.top[0].nome}`;
-                if (sessionLog[0] !== entry) {
-                    sessionLog.unshift(entry);
-                    if (sessionLog.length > 5) sessionLog.pop();
-                    document.getElementById('log').innerHTML = sessionLog.join('<br>');
-                }
-            } else {
-                out.innerHTML = "🌀 Baseline - Nessuna deviazione significativa";
-                document.getElementById('adv').innerHTML = "Seleziona uno o più segnali per attivare l'analisi";
-                document.getElementById('secondary-patterns').innerHTML = '';
-            }
-            
-            // Identità
-            document.getElementById('identita-dominante').innerText = `${dominante.dominante} (${dominante.livello})`;
-            
-            let identitaHtml = '';
-            const colori = {
-                competenza: '#3498db', intelligenza: '#9b59b6', status: '#f1c40f',
-                indipendenza: '#e67e22', moralita: '#2ecc71', superiorita: '#e74c3c', sicurezza: '#1abc9c'
-            };
-            Object.entries(identita).forEach(([tratto, valore]) => {
-                identitaHtml += `
-                    <div class="identita-item">
-                        <div class="identita-label">${tratto}</div>
-                        <div class="identita-valore" style="color:${colori[tratto]}">${valore}%</div>
-                        <div class="identita-bar">
-                            <div class="identita-fill" style="width:${valore}%; background:${colori[tratto]};"></div>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('identita-grid').innerHTML = identitaHtml;
-        }
-
-        function reset() { 
-            if(confirm("Resettare tutti i segnali?")) { 
-                selected.clear(); 
-                sessionLog = []; 
-                document.getElementById('log').innerHTML = ""; 
-                render(); 
-                update(); 
-            } 
-        }
-
-        // ==================== AVVIO ====================
-        render();
-    </script>
+    <!-- Caricamento moduli in ordine corretto -->
+    <script src="data/segnali.json"></script>
+    <script src="data/patterns.json"></script>
+    <script src="data/contesti.json"></script>
+    
+    <script src="core/pattern_library.js"></script>
+    <script src="core/baseline_engine.js"></script>
+    <script src="core/congruenza_matrix.js"></script>
+    <script src="core/priority_rules.js"></script>
+    <script src="core/pattern_matcher.js"></script>
+    <script src="core/inference_engine.js"></script>
+    
+    <script src="modules/intensita_calculator.js"></script>
+    <script src="modules/contesto_modulator.js"></script>
+    <script src="modules/prediction_engine.js"></script>
+    <script src="modules/identita_analyzer.js"></script>
+    
+    <script src="utils/export_manager.js"></script>
+    <script src="utils/validators.js"></script>
+    
+    <script src="app.js"></script>
 </body>
 </html>
