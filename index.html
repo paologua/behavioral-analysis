@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Behavioral Analysis 50/50</title>
+    <title>Behavioral Analysis - Profilo Identità</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -18,6 +18,18 @@
             color: #00ff9d;
             text-align: center;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .badge-50 {
+            background: #00ff9d;
+            color: #0a0a0a;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
         }
         .timer {
             text-align: center;
@@ -28,6 +40,15 @@
             padding: 10px;
             border-radius: 8px;
             margin-bottom: 10px;
+        }
+        .primo-segnale {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            border-left: 4px solid #00ff9d;
         }
         .grid {
             display: grid;
@@ -49,10 +70,13 @@
             font-size: 9px;
             cursor: pointer;
             text-align: left;
+            transition: all 0.2s;
         }
+        .btn:hover { background: #2a2a2a; }
         .btn.active {
             background: #007bff;
             color: white;
+            border-color: #00c3ff;
         }
         .btn.NV.active { background: #007bff; }
         .btn.PV.active { background: #28a745; }
@@ -63,6 +87,7 @@
             padding: 15px;
             border-radius: 8px;
             margin-top: 10px;
+            border-top: 3px solid #007bff;
         }
         
         .canali-container {
@@ -90,6 +115,7 @@
             height: 10px;
             border-radius: 5px;
             margin: 5px 0;
+            overflow: hidden;
         }
         .bar { height: 100%; transition: width 0.3s; }
         
@@ -101,31 +127,110 @@
             color: white;
             border: 1px solid #333;
             border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
         }
-        #analizzaBtn { background: #28a745; font-weight: bold; }
+        #analizzaBtn { background: #28a745; }
         #resetBtn { background: #dc3545; }
         
+        .stats {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .stats span { color: #00ff9d; font-weight: bold; }
+        
+        .direzione-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .fuga { background: #e74c3c; color: white; }
+        .apertura { background: #27ae60; color: white; }
+        .controllo { background: #f39c12; color: white; }
+        .approccio { background: #3498db; color: white; }
+        
+        .identita-container {
+            background: linear-gradient(135deg, #1a2634, #2c3e50);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #405b73;
+        }
+        .identita-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .identita-titolo {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #00ff9d;
+        }
+        .identita-dominante {
+            background: #8e44ad;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
         .identita-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 15px 0;
+            gap: 15px;
         }
         .identita-item {
-            background: #1e1e1e;
-            padding: 8px;
+            background: #1e2b3a;
+            padding: 10px;
             border-radius: 6px;
+            border: 1px solid #405b73;
         }
-        .identita-bar {
-            height: 4px;
-            background: #333;
-            margin-top: 5px;
+        .identita-label {
+            font-size: 0.7rem;
+            color: #b0c4de;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .identita-fill { height: 100%; }
+        .identita-valore {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .identita-bar-bg {
+            background: #2c3e50;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .identita-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+        
+        #log-container {
+            background: #0d0d0d;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <h2>🧠 BEHAVIORAL ANALYSIS 50/50</h2>
+    <h2>
+        🧠 ANALISI COMPORTAMENTALE
+        <span class="badge-50">50/50</span>
+    </h2>
+    
     <div class="timer" id="timer">00:00</div>
 
     <select id="ctx">
@@ -135,7 +240,7 @@
         <option value="INFORMALE">☕ INFORMALE</option>
     </select>
 
-    <div class="primo-segnale" style="background:#1a1a1a; padding:10px; border-radius:8px; margin:10px 0; display:flex; justify-content:space-between;">
+    <div class="primo-segnale">
         <span>📌 Primo segnale: <span id="primoSegnaleLabel">Nessuno</span></span>
         <button id="resetPrimo" style="width:auto; background:#333; padding:5px 10px;">✕</button>
     </div>
@@ -143,45 +248,63 @@
     <div id="btn-container" class="grid"></div>
 
     <div class="panel">
-        <div id="alert-box" style="color:#ff4d4d; display:none;">⚠️ INCONGRUENZA</div>
-        
         <div class="canali-container">
-            <div class="canale-box"><span class="canale-valore NV" id="valoreNV">0</span><div>NV</div></div>
-            <div class="canale-box"><span class="canale-valore PV" id="valorePV">0</span><div>PV</div></div>
-            <div class="canale-box"><span class="canale-valore V" id="valoreV">0</span><div>V</div></div>
+            <div class="canale-box">
+                <div class="canale-valore NV" id="valoreNV">0</div>
+                <div class="canale-label">NON VERBALE</div>
+            </div>
+            <div class="canale-box">
+                <div class="canale-valore PV" id="valorePV">0</div>
+                <div class="canale-label">PARAVERBALE</div>
+            </div>
+            <div class="canale-box">
+                <div class="canale-valore V" id="valoreV">0</div>
+                <div class="canale-label">VERBALE</div>
+            </div>
         </div>
         
         <div class="bar-container"><div class="bar" id="bar-nv" style="background:#007bff"></div></div>
         <div class="bar-container"><div class="bar" id="bar-pv" style="background:#28a745"></div></div>
         <div class="bar-container"><div class="bar" id="bar-v" style="background:#ffc107"></div></div>
         
-        <div style="display:flex; gap:10px; margin:10px 0;">
-            <div>Attivi: <span id="active-count">0</span>/50</div>
-            <div>Intensità: <span id="intensity-level">0%</span></div>
-            <div>Pattern: <span id="pattern-count">0</span></div>
+        <div class="stats">
+            <div>📊 Attivi: <span id="active-count">0</span>/50</div>
+            <div>⚡ Intensità: <span id="intensity-level">0%</span></div>
+            <div>🎯 Pattern: <span id="pattern-count">0</span></div>
         </div>
 
-        <div id="res" style="padding:10px; background:#1e1e1e; border-radius:6px; margin:10px 0;"></div>
+        <!-- Pattern principale -->
+        <div id="res" style="font-size: 1rem; margin: 15px 0; padding: 10px; background: #1e1e1e; border-radius: 6px;"></div>
         
-        <div style="background:#1a2634; padding:10px; border-radius:6px;">
-            <div style="display:flex; justify-content:space-between;">
-                <span>🧠 IDENTITÀ</span>
-                <span id="identita-dominante" style="background:#8e44ad; padding:3px 10px; border-radius:20px;"></span>
+        <!-- PROFILO IDENTITÀ (7 dimensioni) -->
+        <div class="identita-container">
+            <div class="identita-header">
+                <span class="identita-titolo">🧠 PROFILO IDENTITÀ</span>
+                <span class="identita-dominante" id="identita-dominante">-</span>
             </div>
-            <div class="identita-grid" id="identita-grid"></div>
+            <div class="identita-grid" id="identita-grid">
+                <!-- Generato da JavaScript -->
+            </div>
         </div>
         
-        <div id="adv" style="color:#ffc107; margin-top:10px;"></div>
-        <div id="secondary-patterns" style="margin-top:10px; color:#888;"></div>
+        <div id="adv" style="color:#ffc107; font-size:0.85rem; margin-top:8px; border-left:2px solid #ffc107; padding-left:8px;"></div>
+        
+        <div style="margin-top: 15px; font-size:0.8rem; color:#888; border-top:1px solid #333; padding-top:10px;">
+            <strong>📌 Pattern secondari:</strong>
+            <div id="secondary-patterns"></div>
+        </div>
     </div>
 
-    <div id="log-container" style="background:#0d0d0d; padding:10px; margin-top:10px; font-size:0.8rem;"></div>
+    <div id="log-container">
+        <strong>📋 Log sessione:</strong>
+        <div id="log"></div>
+    </div>
 
-    <button id="resetBtn">🔄 RESET</button>
-    <button id="analizzaBtn">🔍 ANALIZZA</button>
+    <button id="analizzaBtn">🔍 ANALIZZA COMPORTAMENTO</button>
+    <button id="resetBtn">🔄 RESET COMPLETO</button>
 
     <script>
-        // ==================== DATI INLINE (niente file esterni) ====================
+        // ==================== DATI COMPLETI ====================
         const SEGNALI = [
             { id: "S001", nome: "Apnea/Respirazione superficiale", peso: 1.0, zona: "NV" },
             { id: "S002", nome: "Respirazione profonda/Rilassata", peso: 1.0, zona: "NV" },
@@ -300,10 +423,9 @@
         let sessionLog = [];
         let primoSegnale = null;
         let secondi = 0;
-        let timerInterval;
 
         // ==================== TIMER ====================
-        timerInterval = setInterval(() => {
+        setInterval(() => {
             secondi++;
             const min = Math.floor(secondi / 60).toString().padStart(2, '0');
             const sec = (secondi % 60).toString().padStart(2, '0');
@@ -319,30 +441,94 @@
                 const btn = document.createElement('button');
                 btn.className = `btn ${s.zona} ${selected.has(s.id) ? 'active' : ''}`;
                 btn.innerText = `${s.id}: ${s.nome.substring(0, 20)}`;
-                btn.onclick = () => toggleSegnale(s.id);
+                btn.onclick = () => {
+                    if (selected.has(s.id)) {
+                        selected.delete(s.id);
+                    } else {
+                        selected.add(s.id);
+                        if (!primoSegnale) {
+                            primoSegnale = s.nome;
+                            document.getElementById('primoSegnaleLabel').textContent = s.nome;
+                        }
+                    }
+                    render();
+                    document.getElementById('active-count').innerText = selected.size;
+                };
                 container.appendChild(btn);
             });
         }
 
-        function toggleSegnale(id) {
-            if (selected.has(id)) {
-                selected.delete(id);
-            } else {
-                selected.add(id);
-                if (!primoSegnale) {
-                    const s = SEGNALI.find(s => s.id === id);
-                    primoSegnale = s.nome;
-                    document.getElementById('primoSegnaleLabel').textContent = s.nome;
-                }
-            }
-            render();
-            document.getElementById('active-count').innerText = selected.size;
+        // ==================== ANALISI IDENTITÀ ====================
+        function analizzaIdentita() {
+            const pesi = {
+                competenza: { S024: 2, S025: 2, S008: 1, S020: 1, S045: 1 },
+                intelligenza: { S025: 2, S033: 1.5, S005: 1, S045: 1.5, S047: 1 },
+                status: { S008: 2, S019: 1.5, S029: 1.5, S024: 1, S013: 1 },
+                indipendenza: { S007: 2, S009: 2, S034: 1.5, S050: 1.5, S039: 1 },
+                moralita: { S045: 2.5, S049: 2, S040: -1.5, S046: -1.5, S029: -1 },
+                superiorita: { S029: 2, S019: 2, S013: 1.5, S001: -1, S004: -1 },
+                sicurezza: { S002: 2, S008: 2, S024: 1.5, S045: 1.5, S019: 1 }
+            };
+            
+            let punteggi = {};
+            Object.keys(pesi).forEach(tratto => {
+                let totale = 0, massimo = 0;
+                Object.entries(pesi[tratto]).forEach(([segnale, peso]) => {
+                    const s = SEGNALI.find(s => s.id === segnale);
+                    const valore = selected.has(segnale) ? (s?.peso || 1) : 0;
+                    if (peso > 0) { totale += valore * peso; massimo += 4 * peso; }
+                    else { totale -= valore * Math.abs(peso); massimo += 4 * Math.abs(peso); }
+                });
+                punteggi[tratto] = massimo > 0 ? Math.min(100, Math.max(0, Math.round((totale / massimo) * 100))) : 0;
+            });
+            return punteggi;
+        }
+
+        function getIdentitaDominante(punteggi) {
+            let max = 0, dominante = 'neutro';
+            Object.entries(punteggi).forEach(([tratto, val]) => { if (val > max) { max = val; dominante = tratto; } });
+            let livello = 'basso';
+            if (max >= 70) livello = 'alto';
+            else if (max >= 40) livello = 'medio';
+            return { dominante, livello, punteggio: max };
+        }
+
+        function renderIdentita(punteggi, dominante) {
+            document.getElementById('identita-dominante').innerText = `${dominante.dominante} (${dominante.livello})`;
+            
+            const colori = {
+                competenza: '#3498db',
+                intelligenza: '#9b59b6',
+                status: '#f1c40f',
+                indipendenza: '#e67e22',
+                moralita: '#2ecc71',
+                superiorita: '#e74c3c',
+                sicurezza: '#1abc9c'
+            };
+            
+            let html = '';
+            Object.entries(punteggi).forEach(([tratto, valore]) => {
+                html += `
+                    <div class="identita-item">
+                        <div class="identita-label">${tratto}</div>
+                        <div class="identita-valore" style="color:${colori[tratto]}">${valore}%</div>
+                        <div class="identita-bar-bg">
+                            <div class="identita-bar-fill" style="width:${valore}%; background:${colori[tratto]};"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('identita-grid').innerHTML = html;
         }
 
         // ==================== ANALISI ====================
         function analizza() {
-            if (selected.size === 0) return alert('Seleziona almeno un segnale');
-            
+            if (selected.size === 0) {
+                alert('Seleziona almeno un segnale');
+                return;
+            }
+
+            // Calcolo canali
             let canali = { NV: 0, PV: 0, V: 0 };
             let conteggi = { NV: 0, PV: 0, V: 0 };
             
@@ -354,56 +540,117 @@
                 if (s.zona === "V") { canali.V += s.peso; conteggi.V++; }
             });
 
+            // Calcolo pattern
             let risultati = [];
+            let vettori = { apertura: 0, fuga: 0, controllo: 0, approccio: 0 };
+            
+            const ctx = CONTESTI[document.getElementById('ctx').value] || CONTESTI.NEGOZIALE;
+
             PATTERN_LIBRARY.forEach(p => {
-                let score = 0, max = 0;
+                let score = 0;
+                let max = 0;
                 p.segnali.forEach(id => {
                     const s = SEGNALI.find(s => s.id === id);
                     if (!s) return;
                     max += s.peso;
                     if (selected.has(id)) score += s.peso;
                 });
+                
                 if (max > 0) {
                     let prob = (score / max) * 100;
-                    if (prob > 15) risultati.push({ nome: p.nome, prob: Math.round(prob), direzione: p.direzione });
+                    if (ctx.focus.includes(p.cluster)) {
+                        prob *= ctx.moltiplicatore;
+                    }
+                    if (prob > 15) {
+                        risultati.push({ 
+                            nome: p.nome, 
+                            prob: Math.min(Math.round(prob), 100), 
+                            direzione: p.direzione 
+                        });
+                        if (vettori[p.direzione] !== undefined) {
+                            vettori[p.direzione] += prob;
+                        }
+                    }
                 }
             });
+
             risultati.sort((a, b) => b.prob - a.prob);
+            
+            let direzione = 'neutrale';
+            let maxVettore = 0;
+            Object.entries(vettori).forEach(([dir, val]) => {
+                if (val > maxVettore) { maxVettore = val; direzione = dir; }
+            });
+
+            // Intensità
+            const totalePesi = canali.NV + canali.PV + canali.V;
+            const intensita = selected.size > 0 ? Math.min(100, Math.round((totalePesi / (selected.size * 4)) * 100)) : 0;
+
+            // Identità
+            const identita = analizzaIdentita();
+            const dominante = getIdentitaDominante(identita);
 
             // Aggiorna UI
             document.getElementById('valoreNV').innerText = canali.NV.toFixed(1);
             document.getElementById('valorePV').innerText = canali.PV.toFixed(1);
             document.getElementById('valoreV').innerText = canali.V.toFixed(1);
             
-            document.getElementById('bar-nv').style.width = Math.min(100, canali.NV * 8) + '%';
-            document.getElementById('bar-pv').style.width = Math.min(100, canali.PV * 8) + '%';
-            document.getElementById('bar-v').style.width = Math.min(100, canali.V * 8) + '%';
+            document.getElementById('bar-nv').style.width = Math.min(100, (canali.NV / 4) * 100) + '%';
+            document.getElementById('bar-pv').style.width = Math.min(100, (canali.PV / 4) * 100) + '%';
+            document.getElementById('bar-v').style.width = Math.min(100, (canali.V / 4) * 100) + '%';
             
+            document.getElementById('intensity-level').innerText = intensita + '%';
             document.getElementById('pattern-count').innerText = risultati.length;
+
+            // Pattern principale
+            const mainDiv = document.getElementById('res');
+            const secDiv = document.getElementById('secondary-patterns');
+            const advDiv = document.getElementById('adv');
             
             if (risultati.length > 0) {
-                document.getElementById('res').innerHTML = `<strong>${risultati[0].nome}</strong> (${risultati[0].prob}%)`;
+                mainDiv.innerHTML = `
+                    <strong style="font-size:1.2rem;">${risultati[0].nome}</strong> 
+                    <span class="direzione-badge ${risultati[0].direzione}">${risultati[0].prob}%</span>
+                    <div style="margin-top:8px;">Direzione: <strong>${direzione.toUpperCase()}</strong></div>
+                `;
                 
-                let sec = '';
+                let secHtml = '';
                 for (let i = 1; i < Math.min(4, risultati.length); i++) {
-                    sec += `<div>${risultati[i].nome} (${risultati[i].prob}%)</div>`;
+                    secHtml += `<div style="margin:5px 0;">• ${risultati[i].nome} (${risultati[i].prob}%)</div>`;
                 }
-                document.getElementById('secondary-patterns').innerHTML = sec;
+                secDiv.innerHTML = secHtml || '<div style="color:#666;">Nessuno</div>';
                 
+                const suggerimenti = {
+                    apertura: "La persona è recettiva. Incoraggia lo scambio.",
+                    fuga: "Possibile disagio. Rallenta e rassicura.",
+                    controllo: "Tentativo di dominare. Mantieni la calma.",
+                    approccio: "Interesse crescente. Approfondisci."
+                };
+                advDiv.innerHTML = `💡 ${suggerimenti[direzione] || "Continua osservazione"}`;
+                
+                // Log
                 let entry = `${new Date().toLocaleTimeString()} - ${risultati[0].nome}`;
                 if (sessionLog[0] !== entry) {
                     sessionLog.unshift(entry);
                     if (sessionLog.length > 5) sessionLog.pop();
-                    document.getElementById('log-container').innerHTML = '<strong>📋 Log:</strong><br>' + sessionLog.join('<br>');
+                    document.getElementById('log').innerHTML = sessionLog.join('<br>');
                 }
+            } else {
+                mainDiv.innerHTML = "🌀 Nessun pattern rilevato";
+                secDiv.innerHTML = '';
+                advDiv.innerHTML = '';
             }
+
+            // Render identità
+            renderIdentita(identita, dominante);
         }
 
         // ==================== RESET ====================
         function reset() {
-            if (confirm('Resettare?')) {
+            if (confirm('Resettare tutti i segnali?')) {
                 selected.clear();
                 primoSegnale = null;
+                sessionLog = [];
                 document.getElementById('primoSegnaleLabel').textContent = 'Nessuno';
                 render();
                 document.getElementById('active-count').innerText = '0';
@@ -413,14 +660,20 @@
                 document.getElementById('bar-nv').style.width = '0%';
                 document.getElementById('bar-pv').style.width = '0%';
                 document.getElementById('bar-v').style.width = '0%';
+                document.getElementById('intensity-level').innerText = '0%';
+                document.getElementById('pattern-count').innerText = '0';
                 document.getElementById('res').innerHTML = '';
                 document.getElementById('secondary-patterns').innerHTML = '';
+                document.getElementById('adv').innerHTML = '';
+                document.getElementById('log').innerHTML = '';
+                document.getElementById('identita-dominante').innerText = '-';
+                document.getElementById('identita-grid').innerHTML = '';
             }
         }
 
         // ==================== EVENTI ====================
-        document.getElementById('resetBtn').onclick = reset;
         document.getElementById('analizzaBtn').onclick = analizza;
+        document.getElementById('resetBtn').onclick = reset;
         document.getElementById('resetPrimo').onclick = () => {
             primoSegnale = null;
             document.getElementById('primoSegnaleLabel').textContent = 'Nessuno';
